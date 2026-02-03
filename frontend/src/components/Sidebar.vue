@@ -69,7 +69,7 @@
 
         <!-- Footer -->
         <div class="p-4 border-t border-white/5 text-center">
-            <a href="https://github.com/JackyST0" target="_blank" class="text-xs text-gray-600 hover:text-gray-400 transition">
+            <a href="https://github.com/JackyST0/hotpush" target="_blank" class="text-xs text-gray-600 hover:text-gray-400 transition">
                 <i class="fab fa-github mr-1"></i>@JackyST0
             </a>
         </div>
