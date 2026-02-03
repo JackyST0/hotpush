@@ -67,3 +67,6 @@ frontend/.env
 # Cursor
 .cursor/
 .cursorindexingignore
+
+# Specstory (may contain sensitive data)
+.specstory/
