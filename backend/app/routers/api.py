@@ -98,22 +98,33 @@ async def stream_hot_lists(
                 if await request.is_disconnected():
                     return None
 
-                # 先检查内置源
+                # 获取源名称
+                source_name = source_id
                 if source_id in HOT_SOURCES:
-                    hot_list = await rss_fetcher.fetch_hot_list(source_id)
-                else:
-                    # 检查自定义源
-                    custom_source = db.get_custom_source(source_id)
-                    if custom_source:
-                        hot_list = await rss_fetcher.fetch_custom_source(custom_source)
-                    else:
-                        hot_list = None
+                    source_name = HOT_SOURCES[source_id].get("name", source_id)
 
-                completed += 1
-                if hot_list:
-                    success += 1
-                    return hot_list
-                return None
+                try:
+                    # 先检查内置源
+                    if source_id in HOT_SOURCES:
+                        hot_list = await rss_fetcher.fetch_hot_list(source_id)
+                    else:
+                        # 检查自定义源
+                        custom_source = db.get_custom_source(source_id)
+                        if custom_source:
+                            source_name = custom_source.get("name", source_id)
+                            hot_list = await rss_fetcher.fetch_custom_source(custom_source)
+                        else:
+                            hot_list = None
+
+                    completed += 1
+                    if hot_list:
+                        success += 1
+                        return {"type": "success", "data": hot_list}
+                    else:
+                        return {"type": "failed", "source_id": source_id, "source_name": source_name}
+                except Exception as e:
+                    completed += 1
+                    return {"type": "failed", "source_id": source_id, "source_name": source_name, "error": str(e)}
 
         # 创建所有任务
         tasks = [asyncio.create_task(fetch_and_yield(sid)) for sid in source_ids]
@@ -121,35 +132,39 @@ async def stream_hot_lists(
         # 使用 as_completed 按完成顺序处理
         for coro in asyncio.as_completed(tasks):
             try:
-                hot_list = await coro
-                if hot_list:
-                    # 将 HotList 转换为 JSON
-                    data = {
-                        "source": hot_list.source,
-                        "source_name": hot_list.source_name,
-                        "icon": hot_list.icon,
-                        "updated_at": hot_list.updated_at.isoformat() if hot_list.updated_at else None,
-                        "items": [
-                            {
-                                "id": item.id,
-                                "title": item.title,
-                                "url": item.url,
-                                "hot_score": item.hot_score,
-                                "source": item.source,
-                                "published": item.published.isoformat() if item.published else None,
-                                "description": item.description,
-                                "image": item.image
-                            }
-                            for item in hot_list.items
-                        ]
-                    }
-                    yield f"event: hotlist\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+                result = await coro
+                if result:
+                    if result["type"] == "success":
+                        hot_list = result["data"]
+                        # 将 HotList 转换为 JSON
+                        data = {
+                            "source": hot_list.source,
+                            "source_name": hot_list.source_name,
+                            "icon": hot_list.icon,
+                            "updated_at": hot_list.updated_at.isoformat() if hot_list.updated_at else None,
+                            "items": [
+                                {
+                                    "id": item.id,
+                                    "title": item.title,
+                                    "url": item.url,
+                                    "hot_score": item.hot_score,
+                                    "source": item.source,
+                                    "published": item.published.isoformat() if item.published else None,
+                                    "description": item.description,
+                                    "image": item.image
+                                }
+                                for item in hot_list.items
+                            ]
+                        }
+                        yield f"event: hotlist\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+                    elif result["type"] == "failed":
+                        # 发送失败事件
+                        yield f"event: failed\ndata: {json.dumps({'source_id': result['source_id'], 'source_name': result['source_name']}, ensure_ascii=False)}\n\n"
 
                 # 发送进度更新
                 yield f"event: progress\ndata: {json.dumps({'completed': completed, 'total': total, 'success': success})}\n\n"
 
             except Exception as e:
-                completed += 1
                 yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
 
             # 检查客户端是否断开

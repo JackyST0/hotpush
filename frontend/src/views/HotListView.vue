@@ -34,6 +34,26 @@
             </div>
         </div>
 
+        <!-- Failed Sources Alert -->
+        <div v-if="!loading && failedSources.length > 0" class="glass rounded-lg p-4 mb-4 border border-amber-500/30">
+            <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-amber-400 text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-amber-400 text-sm font-medium mb-1">
+                        {{ failedSources.length }} 个数据源加载失败
+                    </p>
+                    <p class="text-gray-400 text-xs">
+                        {{ failedSources.map(s => s.source_name).join('、') }}
+                    </p>
+                    <p class="text-gray-500 text-xs mt-2">
+                        可能原因：需要配置 Cookie、网络问题或数据源暂时不可用
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Loading Skeleton -->
         <div v-if="loading && hotLists.length === 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             <div v-for="i in 6" :key="i" class="glass rounded-xl p-4">
@@ -138,6 +158,7 @@ const sourceIcons = {
 
 // State
 const hotLists = ref([])
+const failedSources = ref([])
 const loading = ref(false)
 const activeCategory = ref('全部')
 const fetchProgress = ref({ completed: 0, total: 0, success: 0 })
@@ -197,6 +218,7 @@ const fetchHotLists = () => {
 
     loading.value = true
     hotLists.value = []
+    failedSources.value = []
     fetchProgress.value = { completed: 0, total: 0, success: 0 }
 
     let url = `${API_BASE}/hot/stream`
@@ -216,6 +238,11 @@ const fetchHotLists = () => {
         hotLists.value.push(data)
         fetchProgress.value.completed = hotLists.value.length
         fetchProgress.value.success = hotLists.value.length
+    })
+
+    eventSource.addEventListener('failed', (e) => {
+        const data = JSON.parse(e.data)
+        failedSources.value.push(data)
     })
 
     eventSource.addEventListener('progress', (e) => {
