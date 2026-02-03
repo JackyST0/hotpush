@@ -87,7 +87,7 @@ class TelegramPusher(BasePusher):
         MAX_LENGTH = 4000
         
         messages = []
-        current_lines = [f"<b>🔥 {message.title}</b>\n"]
+        current_lines = [f"<b>{message.title}</b>\n"]
         current_length = len(current_lines[0])
         
         # 合并推送和摘要：按平台分组显示
@@ -112,7 +112,7 @@ class TelegramPusher(BasePusher):
                 section_header = f"\n<b>📌 {platform_name}</b>"
                 if current_length + len(section_header) > MAX_LENGTH:
                     messages.append("\n".join(current_lines))
-                    current_lines = [f"<b>🔥 {message.title}（续）</b>\n"]
+                    current_lines = [f"<b>{message.title}（续）</b>\n"]
                     current_length = len(current_lines[0])
                 
                 current_lines.append(section_header)
@@ -129,7 +129,7 @@ class TelegramPusher(BasePusher):
                     
                     if current_length + len(line) + 1 > MAX_LENGTH:
                         messages.append("\n".join(current_lines))
-                        current_lines = [f"<b>🔥 {message.title}（续）</b>\n"]
+                        current_lines = [f"<b>{message.title}（续）</b>\n"]
                         current_length = len(current_lines[0])
                     
                     current_lines.append(line)
@@ -142,7 +142,7 @@ class TelegramPusher(BasePusher):
                 
                 if current_length + len(line) + 1 > MAX_LENGTH:
                     messages.append("\n".join(current_lines))
-                    current_lines = [f"<b>🔥 {message.title}（续）</b>\n"]
+                    current_lines = [f"<b>{message.title}（续）</b>\n"]
                     current_length = len(current_lines[0])
                 
                 current_lines.append(line)
@@ -172,7 +172,7 @@ class DiscordPusher(BasePusher):
 
         # 格式化为 Discord Embed
         embed = {
-            "title": f"🔥 {message.title}",
+            "title": message.title,
             "description": self._format_items(message),
             "color": 16750592,  # 橙色
             "footer": {"text": f"来源: {message.source}"}
@@ -260,7 +260,7 @@ class WeComPusher(BasePusher):
         max_items = 50 if message.source in ["digest", "combined"] else 10
         items = message.items[:max_items]
         
-        lines = [f"### 🔥 {message.title}\n"]
+        lines = [f"### {message.title}\n"]
         
         # 合并推送：按平台分组显示
         if message.source in ["digest", "combined"]:
@@ -414,7 +414,7 @@ class DingTalkPusher(BasePusher):
         max_items = 50 if message.source in ["digest", "combined"] else 10
         items = message.items[:max_items]
         
-        lines = [f"### 🔥 {message.title}\n"]
+        lines = [f"### {message.title}\n"]
         
         # 合并推送：按平台分组显示
         if message.source in ["digest", "combined"]:
@@ -518,7 +518,7 @@ class EmailPusher(BasePusher):
             html_content = self._format_html(message)
 
             msg = MIMEMultipart("alternative")
-            msg["Subject"] = f"🔥 {message.title}"
+            msg["Subject"] = message.title
             msg["From"] = self.username
             msg["To"] = self.to_email
 
@@ -601,7 +601,7 @@ class EmailPusher(BasePusher):
         <html>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
             <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 20px; border-radius: 12px 12px 0 0;">
-                <h1 style="color: white; margin: 0; font-size: 24px;">🔥 {message.title}</h1>
+                <h1 style="color: white; margin: 0; font-size: 24px;">{message.title}</h1>
             </div>
             <div style="background: white; padding: 20px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 {content_html}
