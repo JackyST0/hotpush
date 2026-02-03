@@ -1,5 +1,5 @@
 <template>
-    <div class="fixed top-5 left-1/2 -translate-x-1/2 z-50 space-y-2 flex flex-col items-center">
+    <div class="fixed top-5 left-1/2 -translate-x-1/2 z-[99999] space-y-2 flex flex-col items-center">
         <div
             v-for="toast in toasts"
             :key="toast.id"
