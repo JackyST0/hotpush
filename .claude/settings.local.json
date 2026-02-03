@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(curl:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiYXV0aGVudGljYXRlZCI6dHJ1ZSwiZXhwIjoxNzcwMDgyOTQ1fQ.8edLVWFGWyY9B3qXkv8pUhTG4mkOpH6ehfLBZyCjsl8\")",
+      "Bash(for f in *.vue)",
+      "Bash(do:*)",
+      "Bash(done:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}

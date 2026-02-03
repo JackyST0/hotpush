@@ -1,0 +1,69 @@
+# ===============================
+# Python / Backend
+# ===============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+env/
+.env
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# ===============================
+# Node.js / Frontend
+# ===============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+*.local
+
+# ===============================
+# IDE / Editor
+# ===============================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Project Specific
+# ===============================
+# 数据文件
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# 日志
+logs/
+*.log
+
+# 临时文件
+tmp/
+temp/
+.cache/
+
+# 敏感配置（保留 .env.example）
+backend/.env
+frontend/.env
+
+# Cursor
+.cursor/
+.cursorindexingignore
