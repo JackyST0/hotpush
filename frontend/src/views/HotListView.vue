@@ -248,14 +248,16 @@ const fetchHotLists = () => {
         fetchProgress.value = data
     })
 
-    eventSource.addEventListener('done', () => {
+    eventSource.addEventListener('done', (e) => {
         loading.value = false
         if (eventSource) {
             eventSource.close()
             eventSource = null
         }
-        // 数据加载完成后刷新统计信息
-        appStore.fetchStats()
+        // 数据加载完成后刷新统计信息（延迟确保状态更新）
+        setTimeout(() => {
+            appStore.fetchStats()
+        }, 100)
     })
 
     eventSource.addEventListener('error', () => {
