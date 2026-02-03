@@ -92,7 +92,6 @@ async def stream_hot_lists(
 
         async def fetch_and_yield(source_id: str):
             """获取单个源并返回结果"""
-            nonlocal completed, success
             async with semaphore:
                 # 检查客户端是否断开连接
                 if await request.is_disconnected():
@@ -116,14 +115,11 @@ async def stream_hot_lists(
                         else:
                             hot_list = None
 
-                    completed += 1
                     if hot_list:
-                        success += 1
                         return {"type": "success", "data": hot_list}
                     else:
                         return {"type": "failed", "source_id": source_id, "source_name": source_name}
                 except Exception as e:
-                    completed += 1
                     return {"type": "failed", "source_id": source_id, "source_name": source_name, "error": str(e)}
 
         # 创建所有任务
@@ -134,7 +130,9 @@ async def stream_hot_lists(
             try:
                 result = await coro
                 if result:
+                    completed += 1
                     if result["type"] == "success":
+                        success += 1
                         hot_list = result["data"]
                         # 将 HotList 转换为 JSON
                         data = {
@@ -161,8 +159,8 @@ async def stream_hot_lists(
                         # 发送失败事件
                         yield f"event: failed\ndata: {json.dumps({'source_id': result['source_id'], 'source_name': result['source_name']}, ensure_ascii=False)}\n\n"
 
-                # 发送进度更新
-                yield f"event: progress\ndata: {json.dumps({'completed': completed, 'total': total, 'success': success})}\n\n"
+                    # 发送进度更新
+                    yield f"event: progress\ndata: {json.dumps({'completed': completed, 'total': total, 'success': success})}\n\n"
 
             except Exception as e:
                 yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"

@@ -236,8 +236,6 @@ const fetchHotLists = () => {
     eventSource.addEventListener('hotlist', (e) => {
         const data = JSON.parse(e.data)
         hotLists.value.push(data)
-        fetchProgress.value.completed = hotLists.value.length
-        fetchProgress.value.success = hotLists.value.length
     })
 
     eventSource.addEventListener('failed', (e) => {

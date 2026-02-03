@@ -119,6 +119,7 @@ const handleLogout = () => {
 
 const handleRefresh = () => {
     appStore.triggerRefresh()
+    appStore.fetchStats()
 }
 
 // Lifecycle
