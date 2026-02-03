@@ -40,11 +40,18 @@ async def lifespan(app: FastAPI):
     logger.info("HotPush 已关闭")
 
 
+# 生产环境禁用 Swagger 文档
+docs_url = "/docs" if settings.debug else None
+redoc_url = "/redoc" if settings.debug else None
+
 app = FastAPI(
     title="HotPush",
     description="热点聚合推送平台 - 聚合全网热点，主动推送到你指定的平台",
     version="0.1.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url="/openapi.json" if settings.debug else None
 )
 
 # CORS 配置
