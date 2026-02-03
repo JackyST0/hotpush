@@ -254,6 +254,8 @@ const fetchHotLists = () => {
             eventSource.close()
             eventSource = null
         }
+        // 数据加载完成后刷新统计信息
+        appStore.fetchStats()
     })
 
     eventSource.addEventListener('error', () => {
