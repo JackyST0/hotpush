@@ -70,3 +70,4 @@ frontend/.env
 
 # Specstory (may contain sensitive data)
 .specstory/
+.claude/
