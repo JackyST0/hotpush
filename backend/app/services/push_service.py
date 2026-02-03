@@ -482,8 +482,8 @@ class EmailPusher(BasePusher):
     """邮件推送"""
 
     @property
-    def smtp_host(self) -> Optional[str]:
-        return self._config.get("smtp_host")
+    def smtp_host(self) -> str:
+        return self._config.get("smtp_host", "smtp.gmail.com")
 
     @property
     def smtp_port(self) -> int:
