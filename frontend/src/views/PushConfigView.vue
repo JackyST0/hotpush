@@ -238,9 +238,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '../composables/useApi'
 import { useToast } from '../composables/useToast'
+import { useAppStore } from '../stores/app'
 
 const { apiCall, currentUser } = useApi()
 const { showToast } = useToast()
+const appStore = useAppStore()
 
 const channels = ref([])
 const loading = ref(false)
@@ -347,6 +349,8 @@ const saveConfig = async () => {
         showToast('保存成功', 'success')
         showModal.value = false
         fetchChannels()
+        // 刷新统计信息（更新侧边栏推送渠道数量）
+        appStore.fetchStats()
     } catch (e) {
         showToast('保存失败', 'error')
     } finally {
