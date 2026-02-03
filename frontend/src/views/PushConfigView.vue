@@ -106,7 +106,7 @@
 
         <!-- 配置弹窗 -->
         <Teleport to="body">
-        <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
             <div class="glass rounded-2xl w-full max-w-md overflow-hidden">
                 <div class="p-6 border-b border-white/10 flex items-center justify-between">
                     <h3 class="font-bold text-xl text-white">{{ editingChannel?.name }} 配置</h3>

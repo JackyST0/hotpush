@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== BASE ===== */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
 /* ===== BACKGROUND ===== */
 .gradient-bg {
     position: relative;
