@@ -4,8 +4,8 @@ import { ref } from 'vue'
 const API_BASE = '/api'
 
 export const useAppStore = defineStore('app', () => {
-    // State
-    const stats = ref({ sources_count: 0, configured_channels: 0 })
+    // State - 默认 13 个内置数据源
+    const stats = ref({ sources_count: 13, configured_channels: 0 })
     const lastUpdate = ref('')
     const refreshTrigger = ref(0)
 
