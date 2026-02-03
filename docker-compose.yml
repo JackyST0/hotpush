@@ -1,11 +1,10 @@
-version: '3.8'
-
 services:
   # MySQL 数据库
   mysql:
     image: mysql:8.0
     container_name: hotpush-mysql
     environment:
+      # ⚠️ 生产环境请修改此密码！
       - MYSQL_ROOT_PASSWORD=hotpush123
       - MYSQL_DATABASE=hotpush
       - MYSQL_CHARACTER_SET_SERVER=utf8mb4
@@ -47,16 +46,16 @@ services:
     build: ./backend
     container_name: hotpush-backend
     ports:
-      - "8001:8000"  # 改为 8001 避免冲突
+      - "8001:8000"  
     environment:
       - DEBUG=false
-      # 数据库配置
+      # 数据库配置（密码需与上方 MySQL 配置一致）
       - DATABASE_URL=mysql://root:hotpush123@mysql:3306/hotpush
       # Redis 配置
       - REDIS_URL=redis://redis:6379/0
-      # 管理员账号（建议修改密码）
+      # ⚠️ 管理员账号（生产环境必须修改密码！）
       - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=admin123
+      - ADMIN_PASSWORD=admin123  # 请修改为强密码
       # RSSHub 实例配置
       - RSSHUB_URL=http://rsshub:1200
       - FETCH_INTERVAL_MINUTES=5
@@ -85,7 +84,7 @@ services:
     build: ./frontend
     container_name: hotpush-frontend
     ports:
-      - "3001:80"  # 改为 3001 避免与 kvideo 冲突
+      - "3001:80"  
     depends_on:
       - backend
     restart: unless-stopped
