@@ -58,8 +58,8 @@ class Settings(BaseSettings):
     
     discord_webhook_url: Optional[str] = None
     
-    email_smtp_host: str = "smtp.gmail.com"
-    email_smtp_port: int = 587
+    email_smtp_host: Optional[str] = None
+    email_smtp_port: Optional[int] = None
     email_username: Optional[str] = None
     email_password: Optional[str] = None
     email_from: Optional[str] = None

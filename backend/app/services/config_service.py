@@ -128,7 +128,13 @@ class ConfigService:
         elif channel_id in ["discord", "wecom", "feishu", "dingtalk", "webhook"]:
             return bool(channel_config.get("webhook_url"))
         elif channel_id == "email":
-            return bool(channel_config.get("smtp_host") and channel_config.get("to_email"))
+            return bool(
+                channel_config.get("smtp_host") and 
+                channel_config.get("smtp_port") and 
+                channel_config.get("username") and 
+                channel_config.get("password") and 
+                channel_config.get("to_email")
+            )
         return False
 
 

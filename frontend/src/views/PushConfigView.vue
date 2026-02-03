@@ -305,6 +305,12 @@ const validateConfig = () => {
             return { valid: false, message: '请填写 Chat ID' }
         }
     } else if (channelId === 'email') {
+        if (!config.smtp_host?.trim()) {
+            return { valid: false, message: '请填写 SMTP 服务器' }
+        }
+        if (!config.smtp_port) {
+            return { valid: false, message: '请填写端口' }
+        }
         if (!config.username?.trim()) {
             return { valid: false, message: '请填写邮箱用户名' }
         }

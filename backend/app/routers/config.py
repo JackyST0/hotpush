@@ -128,6 +128,11 @@ async def update_push_channel(
                     detail="Telegram 需要配置 bot_token 和 chat_id"
                 )
         elif channel_id == "email":
+            if not config.get("smtp_host") or not config.get("smtp_port"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="邮件需要配置 SMTP 服务器和端口"
+                )
             if not config.get("username") or not config.get("password") or not config.get("to_email"):
                 raise HTTPException(
                     status_code=400,
