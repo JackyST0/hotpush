@@ -10,8 +10,9 @@ services:
       - MYSQL_DATABASE=hotpush
       - MYSQL_CHARACTER_SET_SERVER=utf8mb4
       - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
-    ports:
-      - "3306:3306"
+    # 不对外暴露，只在内部网络访问
+    expose:
+      - "3306"
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
@@ -20,13 +21,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - hotpush-network
 
   # Redis 缓存
   redis:
     image: redis:alpine
     container_name: hotpush-redis
-    ports:
-      - "6379:6379"
+    # 不对外暴露，只在内部网络访问
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -35,23 +39,25 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - hotpush-network
 
   # 后端 API
   backend:
     build: ./backend
     container_name: hotpush-backend
     ports:
-      - "8000:8000"
+      - "8001:8000"  # 改为 8001 避免冲突
     environment:
       - DEBUG=false
       # 数据库配置
       - DATABASE_URL=mysql://root:hotpush123@mysql:3306/hotpush
       # Redis 配置
       - REDIS_URL=redis://redis:6379/0
-      # 管理员账号
+      # 管理员账号（建议修改密码）
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=admin123
-      # RSSHub 实例配置（使用自建实例）
+      # RSSHub 实例配置
       - RSSHUB_URL=http://rsshub:1200
       - FETCH_INTERVAL_MINUTES=5
       # 推送渠道配置（取消注释并填写）
@@ -71,20 +77,24 @@ services:
       rsshub:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - hotpush-network
 
   # 前端
   frontend:
     build: ./frontend
     container_name: hotpush-frontend
     ports:
-      - "3000:80"
+      - "3001:80"  # 改为 3001 避免与 kvideo 冲突
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - hotpush-network
 
-  # RSSHub 数据源（必须自建，公共实例不稳定）
+  # RSSHub 数据源
   rsshub:
-    image: diygod/rsshub
+    image: diygod/rsshub:chromium-bundled
     container_name: hotpush-rsshub
     ports:
       - "1200:1200"
@@ -92,28 +102,24 @@ services:
       - NODE_ENV=production
       - CACHE_TYPE=memory
       - CACHE_EXPIRE=300
-      # ========================================
-      # Cookie 配置（部分数据源需要配置才能正常使用）
-      # ========================================
-      # 微博热搜（必须配置）
-      # 获取方式：登录 weibo.com，F12 打开开发者工具，复制 Cookie
-      # - WEIBO_COOKIE=your_weibo_cookie
-      #
-      # B站热搜（推荐配置，否则可能被限流）
-      # 获取方式：登录 bilibili.com，F12 打开开发者工具，复制 Cookie
-      # - BILIBILI_COOKIE=your_bilibili_cookie
-      #
-      # ========================================
-      # 代理配置（如果网络环境需要）
-      # ========================================
-      # - PROXY_URI=http://proxy:port
+      # 微博 Cookie（可选，用于获取更多微博数据）
+      # - WEIBO_COOKIE=your_weibo_cookie_here
+      # B站 Cookie（可选，用于获取更多B站数据）
+      # - BILIBILI_COOKIE=your_bilibili_cookie_here
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:1200"]
+      test: ["CMD-SHELL", "curl -f http://localhost:1200 || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 30s
+    networks:
+      - hotpush-network
 
 volumes:
   mysql_data:
   redis_data:
+
+networks:
+  hotpush-network:
+    driver: bridge
