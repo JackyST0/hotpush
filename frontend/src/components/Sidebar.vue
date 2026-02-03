@@ -77,9 +77,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useAppStore } from '../stores/app'
 
 defineProps({
     stats: Object
@@ -89,6 +90,12 @@ defineEmits(['logout'])
 
 const route = useRoute()
 const authStore = useAuthStore()
+const appStore = useAppStore()
+
+// 组件挂载时获取统计信息
+onMounted(() => {
+    appStore.fetchStats()
+})
 
 const menuItems = [
     { path: '/hotlist', name: '热搜榜', icon: 'fas fa-fire', adminOnly: false },
