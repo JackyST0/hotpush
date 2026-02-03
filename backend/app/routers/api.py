@@ -103,22 +103,28 @@ async def stream_hot_lists(
                     source_name = HOT_SOURCES[source_id].get("name", source_id)
 
                 try:
-                    # 先检查内置源
-                    if source_id in HOT_SOURCES:
-                        hot_list = await rss_fetcher.fetch_hot_list(source_id)
-                    else:
-                        # 检查自定义源
-                        custom_source = db.get_custom_source(source_id)
-                        if custom_source:
-                            source_name = custom_source.get("name", source_id)
-                            hot_list = await rss_fetcher.fetch_custom_source(custom_source)
+                    # 添加超时限制（30秒）
+                    async def do_fetch():
+                        # 先检查内置源
+                        if source_id in HOT_SOURCES:
+                            return await rss_fetcher.fetch_hot_list(source_id)
                         else:
-                            hot_list = None
+                            # 检查自定义源
+                            custom_source = db.get_custom_source(source_id)
+                            if custom_source:
+                                nonlocal source_name
+                                source_name = custom_source.get("name", source_id)
+                                return await rss_fetcher.fetch_custom_source(custom_source)
+                            return None
+
+                    hot_list = await asyncio.wait_for(do_fetch(), timeout=30.0)
 
                     if hot_list:
                         return {"type": "success", "data": hot_list}
                     else:
                         return {"type": "failed", "source_id": source_id, "source_name": source_name}
+                except asyncio.TimeoutError:
+                    return {"type": "failed", "source_id": source_id, "source_name": source_name, "error": "请求超时"}
                 except Exception as e:
                     return {"type": "failed", "source_id": source_id, "source_name": source_name, "error": str(e)}
 

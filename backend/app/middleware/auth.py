@@ -27,6 +27,7 @@ PUBLIC_PATHS = [
     "/api/auth/login",
     "/api/auth/register",
     "/api/auth/check",
+    "/api/stats",  # 统计信息公开访问
     "/static",
     "/bg.jpg",
     "/favicon.ico",
