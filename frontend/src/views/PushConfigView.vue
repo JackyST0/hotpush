@@ -285,7 +285,51 @@ const openConfig = (channel) => {
     showModal.value = true
 }
 
+// 验证配置是否完整
+const validateConfig = () => {
+    const channelId = editingChannel.value?.id
+    const config = channelForm.value.config
+
+    // 如果未启用，不需要验证
+    if (!channelForm.value.enabled) {
+        return { valid: true }
+    }
+
+    if (channelId === 'telegram') {
+        if (!config.bot_token?.trim()) {
+            return { valid: false, message: '请填写 Bot Token' }
+        }
+        if (!config.chat_id?.trim()) {
+            return { valid: false, message: '请填写 Chat ID' }
+        }
+    } else if (channelId === 'email') {
+        if (!config.username?.trim()) {
+            return { valid: false, message: '请填写邮箱用户名' }
+        }
+        if (!config.password?.trim()) {
+            return { valid: false, message: '请填写密码/授权码' }
+        }
+        if (!config.to_email?.trim()) {
+            return { valid: false, message: '请填写收件人邮箱' }
+        }
+    } else {
+        // Webhook 类型的渠道
+        if (!config.webhook_url?.trim()) {
+            return { valid: false, message: '请填写 Webhook URL' }
+        }
+    }
+
+    return { valid: true }
+}
+
 const saveConfig = async () => {
+    // 验证必填字段
+    const validation = validateConfig()
+    if (!validation.valid) {
+        showToast(validation.message, 'error')
+        return
+    }
+
     saving.value = true
     try {
         await apiCall(`/config/push/${editingChannel.value.id}`, {
