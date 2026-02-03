@@ -6,10 +6,7 @@
         <!-- Main App -->
         <div v-else class="flex h-screen">
             <!-- Sidebar -->
-            <Sidebar
-                :stats="appStore.stats"
-                @logout="handleLogout"
-            />
+            <Sidebar @logout="handleLogout" />
 
             <!-- Main Content -->
             <main class="flex-1 overflow-auto p-6">

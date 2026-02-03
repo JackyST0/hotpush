@@ -35,11 +35,11 @@
         <div class="p-4 border-t border-white/5">
             <div class="grid grid-cols-2 gap-2 text-center">
                 <div class="glass rounded-lg p-3">
-                    <div class="text-lg font-bold text-white">{{ stats?.sources_count || 0 }}</div>
+                    <div class="text-lg font-bold text-white">{{ appStore.stats?.sources_count || 0 }}</div>
                     <div class="text-xs text-gray-500">数据源</div>
                 </div>
                 <div class="glass rounded-lg p-3">
-                    <div class="text-lg font-bold text-white">{{ stats?.configured_channels || 0 }}</div>
+                    <div class="text-lg font-bold text-white">{{ appStore.stats?.configured_channels || 0 }}</div>
                     <div class="text-xs text-gray-500">推送渠道</div>
                 </div>
             </div>
@@ -82,9 +82,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useAppStore } from '../stores/app'
 
-defineProps({
-    stats: Object
-})
+// stats 直接从 appStore 获取，不再需要 props
 
 defineEmits(['logout'])
 
