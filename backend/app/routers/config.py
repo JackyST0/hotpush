@@ -119,18 +119,26 @@ async def update_push_channel(
                 if field in old_config:
                     config[field] = old_config[field]
     
-    if channel_id == "telegram":
-        if not config.get("bot_token") or not config.get("chat_id"):
-            raise HTTPException(
-                status_code=400,
-                detail="Telegram 需要配置 bot_token 和 chat_id"
-            )
-    elif channel_id in ["discord", "wecom", "feishu", "dingtalk"]:
-        if not config.get("webhook_url"):
-            raise HTTPException(
-                status_code=400,
-                detail=f"{channel_id} 需要配置 webhook_url"
-            )
+    # 只有启用时才验证必填字段
+    if channel_config.enabled:
+        if channel_id == "telegram":
+            if not config.get("bot_token") or not config.get("chat_id"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Telegram 需要配置 bot_token 和 chat_id"
+                )
+        elif channel_id == "email":
+            if not config.get("username") or not config.get("password") or not config.get("to_email"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="邮件需要配置用户名、密码和收件人邮箱"
+                )
+        elif channel_id in ["discord", "wecom", "feishu", "dingtalk"]:
+            if not config.get("webhook_url"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"{channel_id} 需要配置 webhook_url"
+                )
 
     # 保存配置
     config_service.save_push_channel(channel_id, channel_config.enabled, config)
