@@ -125,8 +125,9 @@ const handleRefresh = () => {
 // Lifecycle
 onMounted(async () => {
     await authStore.checkAuth()
+    // 无论是否登录都获取统计信息（公开接口）
+    appStore.fetchStats()
     if (authStore.isAuthenticated) {
-        appStore.fetchStats()
         appStore.updateLastRefresh()
     }
 })

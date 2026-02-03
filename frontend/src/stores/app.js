@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useAuthStore } from './auth'
 
 const API_BASE = '/api'
 
@@ -12,13 +11,13 @@ export const useAppStore = defineStore('app', () => {
 
     // Actions
     const fetchStats = async () => {
-        const authStore = useAuthStore()
         try {
-            const response = await fetch(`${API_BASE}/stats`, {
-                headers: authStore.authHeaders
-            })
+            // /api/stats 是公开接口，无需认证
+            const response = await fetch(`${API_BASE}/stats`)
             if (response.ok) {
                 stats.value = await response.json()
+            } else {
+                console.error('Failed to fetch stats:', response.status)
             }
         } catch (e) {
             console.error('Failed to fetch stats:', e)
