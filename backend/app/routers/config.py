@@ -176,9 +176,11 @@ async def delete_push_channel(
 @router.get("/push-sources")
 async def get_push_sources(_: dict = Depends(require_auth)):
     """获取推送数据源选择配置"""
+    from app.services.database import db
+
     selected_sources = config_service.get_push_sources()
 
-    # 构建带分类的数据源列表
+    # 构建带分类的数据源列表（内置源）
     all_sources = []
     for source_id, source_info in HOT_SOURCES.items():
         all_sources.append({
@@ -188,12 +190,32 @@ async def get_push_sources(_: dict = Depends(require_auth)):
             "icon": source_info.get("icon", ""),
         })
 
+    # 合并分类信息
+    categories = dict(CATEGORIES)
+
+    # 添加自定义数据源
+    custom_sources = db.get_all_custom_sources()
+    custom_ids = []
+    for custom in custom_sources:
+        if custom["enabled"]:
+            all_sources.append({
+                "id": custom["id"],
+                "name": custom["name"],
+                "category": custom.get("category", "自定义"),
+                "icon": custom.get("icon", ""),
+            })
+            category = custom.get("category", "自定义")
+            if category not in categories:
+                categories[category] = []
+            if custom["id"] not in categories[category]:
+                categories[category].append(custom["id"])
+            custom_ids.append(custom["id"])
+
     return {
-        # None 表示未配置（推送全部），空列表表示不推送，非空列表表示只推送选中的
         "selected_sources": selected_sources if selected_sources is not None else [],
-        "is_configured": selected_sources is not None,  # 是否已手动配置过
+        "is_configured": selected_sources is not None,
         "all_sources": all_sources,
-        "categories": CATEGORIES,
+        "categories": categories,
     }
 
 
@@ -203,8 +225,13 @@ async def update_push_sources(
     _: dict = Depends(require_admin)
 ):
     """更新推送数据源选择"""
-    # 验证源 ID 是否有效
-    invalid_sources = [s for s in data.sources if s not in HOT_SOURCES]
+    from app.services.database import db
+
+    # 获取所有有效的源 ID（内置 + 自定义）
+    custom_ids = {s["id"] for s in db.get_all_custom_sources()}
+    valid_ids = set(HOT_SOURCES.keys()) | custom_ids
+
+    invalid_sources = [s for s in data.sources if s not in valid_ids]
     if invalid_sources:
         raise HTTPException(
             status_code=400,

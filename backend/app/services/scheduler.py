@@ -312,9 +312,13 @@ class SchedulerService:
             # 抓取选中的热榜
             hot_lists = await rss_fetcher.fetch_all_hot_lists(source_ids=builtin_source_ids)
 
-            # 抓取自定义数据源（自定义源不受选择限制，始终抓取）
+            # 抓取自定义数据源（同样受推送数据源选择限制）
             for custom in custom_sources:
                 if custom["enabled"]:
+                    # 如果用户配置了数据源过滤，检查自定义源是否被选中
+                    if push_source_filter is not None and custom["id"] not in push_source_filter:
+                        logger.debug(f"自定义源 {custom['name']} 未被选中，跳过")
+                        continue
                     hot_list = await rss_fetcher.fetch_custom_source(custom)
                     if hot_list:
                         hot_lists.append(hot_list)

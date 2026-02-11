@@ -121,16 +121,18 @@ class ConfigService:
         """
         获取推送数据源选择
         返回 None 表示未配置（推送所有源，向下兼容）
-        返回空列表 [] 表示用户明确不推送任何内置源
-        返回非空列表表示只推送指定的源
+        返回空列表 [] 表示用户明确不推送任何源
+        返回非空列表表示只推送指定的源（含内置源和自定义源）
         """
         value = db.get_setting("push_sources")
         if value is not None:
             try:
                 sources = json.loads(value)
                 if isinstance(sources, list):
-                    # 过滤掉无效的源 ID
-                    valid_sources = [s for s in sources if s in HOT_SOURCES]
+                    # 获取所有有效的源 ID（内置 + 自定义）
+                    custom_ids = {s["id"] for s in db.get_all_custom_sources()}
+                    valid_ids = set(HOT_SOURCES.keys()) | custom_ids
+                    valid_sources = [s for s in sources if s in valid_ids]
                     return valid_sources
             except json.JSONDecodeError:
                 pass
@@ -139,10 +141,12 @@ class ConfigService:
     def set_push_sources(self, sources: List[str]):
         """
         设置推送数据源选择
-        始终保存显式列表
+        始终保存显式列表（含内置源和自定义源）
         """
-        # 过滤无效的源 ID
-        valid_sources = [s for s in sources if s in HOT_SOURCES]
+        # 获取所有有效的源 ID（内置 + 自定义）
+        custom_ids = {s["id"] for s in db.get_all_custom_sources()}
+        valid_ids = set(HOT_SOURCES.keys()) | custom_ids
+        valid_sources = [s for s in sources if s in valid_ids]
         db.set_setting("push_sources", json.dumps(valid_sources))
 
     def is_push_channel_configured(self, channel_id: str) -> bool:
