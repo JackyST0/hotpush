@@ -34,8 +34,11 @@ export function useApi() {
                 message = error.detail
                     .map(e => {
                         let msg = e.msg || e.message || ''
-                        // 去掉 Pydantic 的技术前缀如 "Value error, "
+                        // 去掉 Pydantic 的技术前缀
                         msg = msg.replace(/^Value error,\s*/i, '')
+                        // 常见英文错误翻译为中文
+                        msg = msg.replace(/^Field required$/i, '缺少必填字段')
+                        msg = msg.replace(/^String should have at least \d+ characters?$/i, '内容长度不足')
                         return msg
                     })
                     .filter(Boolean)

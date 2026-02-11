@@ -264,13 +264,56 @@ const openAddRuleModal = () => {
 
 const editRule = (rule) => {
     editingRule.value = rule
-    ruleForm.value = { ...rule }
+    ruleForm.value = {
+        ...rule,
+        value: configToValue(rule.rule_type, rule.rule_config)
+    }
     showRuleModal.value = true
 }
 
 const closeRuleModal = () => {
     showRuleModal.value = false
     editingRule.value = null
+}
+
+// 将用户输入的文本转换为后端需要的 rule_config 对象
+const buildRuleConfig = (ruleType, value) => {
+    const trimmed = value.trim()
+    switch (ruleType) {
+        case 'keyword_include':
+        case 'keyword_exclude':
+            return { keywords: trimmed.split(/[,，]/).map(k => k.trim()).filter(Boolean) }
+        case 'time_range': {
+            const match = trimmed.match(/(\d{1,2}):?(\d{2})?\s*[-~到]\s*(\d{1,2}):?(\d{2})?/)
+            if (match) {
+                return { start_hour: parseInt(match[1]), end_hour: parseInt(match[3]) }
+            }
+            return { start_hour: 0, end_hour: 23 }
+        }
+        case 'source_filter':
+            return {
+                sources: trimmed.split(/[,，]/).map(s => s.trim()).filter(Boolean),
+                mode: 'include'
+            }
+        default:
+            return {}
+    }
+}
+
+// 将 rule_config 对象转换回用户可读的文本
+const configToValue = (ruleType, config) => {
+    if (!config) return ''
+    switch (ruleType) {
+        case 'keyword_include':
+        case 'keyword_exclude':
+            return (config.keywords || []).join(', ')
+        case 'time_range':
+            return `${config.start_hour || 0}:00-${config.end_hour || 23}:00`
+        case 'source_filter':
+            return (config.sources || []).join(', ')
+        default:
+            return JSON.stringify(config)
+    }
 }
 
 const saveRule = async () => {
@@ -280,16 +323,25 @@ const saveRule = async () => {
     }
     saving.value = true
     try {
+        // 构建后端需要的 rule_config
+        const ruleConfig = buildRuleConfig(ruleForm.value.rule_type, ruleForm.value.value)
+        const payload = {
+            name: ruleForm.value.name,
+            rule_type: ruleForm.value.rule_type,
+            rule_config: ruleConfig,
+            enabled: ruleForm.value.enabled
+        }
+
         if (editingRule.value) {
             await apiCall(`/rules/${editingRule.value.id}`, {
                 method: 'PUT',
-                body: JSON.stringify(ruleForm.value)
+                body: JSON.stringify(payload)
             })
             showToast('规则已更新', 'success')
         } else {
             await apiCall('/rules', {
                 method: 'POST',
-                body: JSON.stringify(ruleForm.value)
+                body: JSON.stringify(payload)
             })
             showToast('规则已添加', 'success')
         }
