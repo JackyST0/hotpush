@@ -11,7 +11,7 @@
             <!-- Main Content -->
             <main class="flex-1 overflow-auto">
                 <!-- Sticky Header -->
-                <div class="sticky top-0 z-10 px-6 pt-6">
+                <div class="sticky top-0 z-10 px-6 pt-6 pb-2 backdrop-blur-xl bg-black/30">
                     <AppHeader
                         :view-title="currentRoute?.meta?.title || '热搜榜'"
                         :view-subtitle="currentRoute?.meta?.subtitle || ''"
