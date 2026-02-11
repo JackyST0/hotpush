@@ -163,7 +163,7 @@ const fetchHistory = async () => {
         historyTotal.value = data.total || 0
         historyStats.value = data.stats || {}
     } catch (e) {
-        showToast('加载历史记录失败', 'error')
+        showToast(e.message || '加载历史记录失败', 'error')
     } finally {
         loading.value = false
     }
@@ -190,7 +190,7 @@ const doCleanup = async () => {
         showToast('历史记录已清理', 'success')
         fetchHistory()
     } catch (e) {
-        showToast('清理失败', 'error')
+        showToast(e.message || '清理失败', 'error')
     }
 }
 

@@ -184,7 +184,7 @@ const handleLogin = async () => {
             error.value = result.message || '登录失败'
         }
     } catch (e) {
-        error.value = '网络错误，请稍后重试'
+        error.value = e.message || '网络错误，请稍后重试'
     } finally {
         loading.value = false
     }
@@ -230,7 +230,7 @@ const handleRegister = async () => {
             registerError.value = data.detail || data.message || '注册失败'
         }
     } catch (e) {
-        registerError.value = '网络错误，请稍后重试'
+        registerError.value = e.message || '网络错误，请稍后重试'
     } finally {
         registerLoading.value = false
     }

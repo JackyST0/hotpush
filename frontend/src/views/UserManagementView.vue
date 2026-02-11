@@ -167,7 +167,7 @@ const fetchUsers = async () => {
         const data = await apiCall('/users')
         usersList.value = data.users || []
     } catch (e) {
-        showToast('加载用户列表失败', 'error')
+        showToast(e.message || '加载用户列表失败', 'error')
     } finally {
         loading.value = false
     }
@@ -204,7 +204,7 @@ const saveUser = async () => {
         closeEditModal()
         fetchUsers()
     } catch (e) {
-        showToast('保存失败', 'error')
+        showToast(e.message || '保存失败', 'error')
     } finally {
         saving.value = false
     }
@@ -218,7 +218,7 @@ const deleteUser = async (user) => {
         showToast('用户已删除', 'success')
         fetchUsers()
     } catch (e) {
-        showToast('删除失败', 'error')
+        showToast(e.message || '删除失败', 'error')
     }
 }
 

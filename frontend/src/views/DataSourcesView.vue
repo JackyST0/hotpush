@@ -211,7 +211,7 @@ const fetchSources = async () => {
             customSources.value = []
         }
     } catch (e) {
-        showToast('加载数据源失败', 'error')
+        showToast(e.message || '加载数据源失败', 'error')
     } finally {
         loading.value = false
     }
@@ -261,7 +261,7 @@ const saveSource = async () => {
         closeSourceModal()
         fetchSources()
     } catch (e) {
-        showToast('保存失败', 'error')
+        showToast(e.message || '保存失败', 'error')
     } finally {
         saving.value = false
     }
@@ -275,7 +275,7 @@ const deleteCustomSource = async (id) => {
         showToast('数据源已删除', 'success')
         fetchSources()
     } catch (e) {
-        showToast('删除失败', 'error')
+        showToast(e.message || '删除失败', 'error')
     }
 }
 

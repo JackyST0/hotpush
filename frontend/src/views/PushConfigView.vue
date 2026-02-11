@@ -383,7 +383,7 @@ const fetchChannels = async () => {
         const data = await apiCall('/config/push')
         channels.value = data.channels || []
     } catch (e) {
-        showToast('加载推送渠道失败', 'error')
+        showToast(e.message || '加载推送渠道失败', 'error')
     } finally {
         loading.value = false
     }
@@ -461,7 +461,7 @@ const saveConfig = async () => {
         // 刷新统计信息（更新侧边栏推送渠道数量）
         appStore.fetchStats()
     } catch (e) {
-        showToast('保存失败', 'error')
+        showToast(e.message || '保存失败', 'error')
     } finally {
         saving.value = false
     }
@@ -480,7 +480,7 @@ const testChannel = async () => {
             showToast(result.message || '测试失败', 'error')
         }
     } catch (e) {
-        showToast('测试失败', 'error')
+        showToast(e.message || '测试失败', 'error')
     } finally {
         testing.value = false
     }
@@ -499,7 +499,7 @@ const testChannelDirect = async (channel) => {
             showToast(result.message || '测试失败', 'error')
         }
     } catch (e) {
-        showToast('测试失败', 'error')
+        showToast(e.message || '测试失败', 'error')
     } finally {
         testingChannel.value = null
     }
@@ -525,7 +525,7 @@ const fetchPushSources = async () => {
         }
         originalSelectedSources.value = [...selectedSources.value]
     } catch (e) {
-        showToast('加载推送数据源配置失败', 'error')
+        showToast(e.message || '加载推送数据源配置失败', 'error')
     } finally {
         sourcesLoading.value = false
     }
@@ -575,7 +575,7 @@ const savePushSources = async () => {
         originalSelectedSources.value = [...selectedSources.value]
         showToast('推送数据源设置已保存', 'success')
     } catch (e) {
-        showToast('保存推送数据源失败', 'error')
+        showToast(e.message || '保存推送数据源失败', 'error')
     } finally {
         savingSources.value = false
     }

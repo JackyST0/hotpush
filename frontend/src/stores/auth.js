@@ -48,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
             setUser(data.user)
             return { success: true }
         }
-        return { success: false, message: data.message || '登录失败' }
+        return { success: false, message: data.detail || data.message || '登录失败' }
     }
 
     const checkAuth = async () => {

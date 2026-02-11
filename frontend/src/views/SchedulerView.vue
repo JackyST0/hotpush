@@ -296,7 +296,7 @@ const fetchSchedulerStatus = async () => {
         schedulerStatus.value = data
         newInterval.value = data.interval_minutes || 30
     } catch (e) {
-        showToast('获取调度器状态失败', 'error')
+        showToast(e.message || '获取调度器状态失败', 'error')
     }
 }
 
@@ -307,7 +307,7 @@ const fetchDigestStatus = async () => {
         digestForm.value.time = data.time || '08:00'
         digestForm.value.top_n = data.top_n || 10
     } catch (e) {
-        showToast('获取摘要配置失败', 'error')
+        showToast(e.message || '获取摘要配置失败', 'error')
     }
 }
 
@@ -317,7 +317,7 @@ const pauseScheduler = async () => {
         showToast('调度器已暂停', 'success')
         fetchSchedulerStatus()
     } catch (e) {
-        showToast('操作失败', 'error')
+        showToast(e.message || '操作失败', 'error')
     }
 }
 
@@ -327,7 +327,7 @@ const resumeScheduler = async () => {
         showToast('调度器已恢复', 'success')
         fetchSchedulerStatus()
     } catch (e) {
-        showToast('操作失败', 'error')
+        showToast(e.message || '操作失败', 'error')
     }
 }
 
@@ -338,7 +338,7 @@ const triggerFetch = async () => {
         showToast('已触发抓取任务', 'success')
         fetchSchedulerStatus()
     } catch (e) {
-        showToast('触发失败', 'error')
+        showToast(e.message || '触发失败', 'error')
     } finally {
         triggeringFetch.value = false
     }
@@ -353,7 +353,7 @@ const updateInterval = async () => {
         showToast('间隔已更新', 'success')
         fetchSchedulerStatus()
     } catch (e) {
-        showToast('更新失败', 'error')
+        showToast(e.message || '更新失败', 'error')
     }
 }
 
@@ -366,7 +366,7 @@ const toggleDigest = async () => {
         showToast(digestStatus.value.enabled ? '摘要已禁用' : '摘要已启用', 'success')
         fetchDigestStatus()
     } catch (e) {
-        showToast('操作失败', 'error')
+        showToast(e.message || '操作失败', 'error')
     }
 }
 
@@ -379,7 +379,7 @@ const updateDigestTime = async () => {
         showToast('推送时间已更新', 'success')
         fetchDigestStatus()
     } catch (e) {
-        showToast('更新失败', 'error')
+        showToast(e.message || '更新失败', 'error')
     }
 }
 
@@ -392,7 +392,7 @@ const updateDigestTopN = async () => {
         showToast('每源条数已更新', 'success')
         fetchDigestStatus()
     } catch (e) {
-        showToast('更新失败', 'error')
+        showToast(e.message || '更新失败', 'error')
     }
 }
 
@@ -413,7 +413,7 @@ const toggleDigestWeekday = async (day) => {
         })
         fetchDigestStatus()
     } catch (e) {
-        showToast('更新失败', 'error')
+        showToast(e.message || '更新失败', 'error')
     }
 }
 
@@ -424,7 +424,7 @@ const triggerDigest = async () => {
         showToast('摘要推送已触发', 'success')
         fetchDigestStatus()
     } catch (e) {
-        showToast('触发失败', 'error')
+        showToast(e.message || '触发失败', 'error')
     } finally {
         triggeringDigest.value = false
     }

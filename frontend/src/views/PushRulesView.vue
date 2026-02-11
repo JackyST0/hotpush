@@ -249,7 +249,7 @@ const fetchRules = async () => {
         const data = await apiCall('/rules')
         pushRules.value = data.rules || []
     } catch (e) {
-        showToast('加载规则失败', 'error')
+        showToast(e.message || '加载规则失败', 'error')
     } finally {
         loading.value = false
     }
@@ -296,7 +296,7 @@ const saveRule = async () => {
         closeRuleModal()
         fetchRules()
     } catch (e) {
-        showToast('保存失败', 'error')
+        showToast(e.message || '保存失败', 'error')
     } finally {
         saving.value = false
     }
@@ -310,7 +310,7 @@ const deleteRule = async (id) => {
         showToast('规则已删除', 'success')
         fetchRules()
     } catch (e) {
-        showToast('删除失败', 'error')
+        showToast(e.message || '删除失败', 'error')
     }
 }
 
