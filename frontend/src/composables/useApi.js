@@ -26,7 +26,16 @@ export function useApi() {
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({}))
-            throw new Error(error.detail || error.message || 'Request failed')
+            // detail 可能是字符串或数组（Pydantic 验证错误）
+            let message = 'Request failed'
+            if (typeof error.detail === 'string') {
+                message = error.detail
+            } else if (Array.isArray(error.detail)) {
+                message = error.detail.map(e => e.msg || e.message || '').filter(Boolean).join('; ')
+            } else if (error.message) {
+                message = error.message
+            }
+            throw new Error(message)
         }
 
         return response.json()
