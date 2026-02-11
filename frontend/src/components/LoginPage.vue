@@ -51,11 +51,15 @@
                         </label>
                         <span class="text-xs text-gray-500">记住我</span>
                     </div>
-                    <a href="#" @click.prevent class="text-xs text-gray-500 hover:text-white transition">忘记密码?</a>
+                    <a href="#" @click.prevent="showForgotTip = true" class="text-xs text-gray-500 hover:text-white transition">忘记密码?</a>
                 </div>
 
                 <div v-if="error" class="text-red-400 text-xs text-center bg-red-500/10 py-2 px-3 rounded-lg">
                     <i class="fas fa-exclamation-circle mr-2"></i>{{ error }}
+                </div>
+
+                <div v-if="showForgotTip" class="text-amber-300 text-xs text-center bg-amber-500/10 py-2 px-3 rounded-lg">
+                    <i class="fas fa-info-circle mr-2"></i>请联系管理员重置密码
                 </div>
 
                 <button
@@ -142,6 +146,7 @@ const password = ref('')
 const loading = ref(false)
 const error = ref('')
 const rememberMe = ref(false)
+const showForgotTip = ref(false)
 
 // 注册表单
 const showRegister = ref(false)
