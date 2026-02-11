@@ -10,11 +10,11 @@
         </div>
 
         <!-- Custom Sources -->
-        <div v-if="customSources.length > 0" class="glass rounded-xl overflow-hidden mb-6">
-            <div class="p-4 border-b border-white/5 flex items-center justify-between">
+        <div v-if="customSources.length > 0" class="glass rounded-2xl overflow-hidden mb-6">
+            <div class="p-6 border-b border-white/10 flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm font-medium text-white">自定义数据源</h3>
-                    <p class="text-gray-500 text-xs mt-1">您添加的自定义 RSS 数据源</p>
+                    <h3 class="font-bold text-xl text-white">自定义数据源</h3>
+                    <p class="text-gray-500 text-sm mt-2">您添加的自定义 RSS 数据源</p>
                 </div>
             </div>
             <div class="divide-y divide-white/5">
