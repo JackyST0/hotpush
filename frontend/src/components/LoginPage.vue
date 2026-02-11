@@ -51,7 +51,7 @@
                         </label>
                         <span class="text-xs text-gray-500">记住我</span>
                     </div>
-                    <a href="#" @click.prevent="showForgotTip = true" class="text-xs text-gray-500 hover:text-white transition">忘记密码?</a>
+                    <a href="#" @click.prevent="handleForgotPassword" class="text-xs text-gray-500 hover:text-white transition">忘记密码?</a>
                 </div>
 
                 <div v-if="error" class="text-red-400 text-xs text-center bg-red-500/10 py-2 px-3 rounded-lg">
@@ -162,6 +162,11 @@ onMounted(() => {
         username.value = localStorage.getItem('hotpush_remember_username') || ''
     }
 })
+
+const handleForgotPassword = () => {
+    showForgotTip.value = true
+    setTimeout(() => { showForgotTip.value = false }, 3000)
+}
 
 const handleLogin = async () => {
     if (!username.value || !password.value) {
