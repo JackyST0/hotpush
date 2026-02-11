@@ -15,6 +15,7 @@ from app.services.push_service import push_service
 from app.services.database import db
 from app.models.schemas import PushMessage, HotItem
 from app.utils.sources import HOT_SOURCES
+from app.services.config_service import config_service
 from app.utils.logger import logger
 
 
@@ -291,17 +292,27 @@ class SchedulerService:
             if not configured_channels:
                 logger.warning("未配置任何推送渠道，跳过推送")
 
+            # 获取用户选择的推送数据源
+            push_source_filter = config_service.get_push_sources()
+
             # 获取自定义数据源
             custom_sources = db.get_all_custom_sources()
             custom_source_ids = [s["id"] for s in custom_sources if s["enabled"]]
 
+            # 确定要抓取的内置数据源
+            builtin_source_ids = list(HOT_SOURCES.keys())
+            if push_source_filter is not None:
+                # 用户已配置数据源过滤，只抓取选中的内置源
+                builtin_source_ids = [s for s in builtin_source_ids if s in push_source_filter]
+                logger.info(f"推送数据源过滤：已选中 {len(builtin_source_ids)} 个内置源")
+
             # 合并内置和自定义数据源
-            all_source_ids = list(HOT_SOURCES.keys()) + custom_source_ids
+            all_source_ids = builtin_source_ids + custom_source_ids
 
-            # 抓取所有热榜
-            hot_lists = await rss_fetcher.fetch_all_hot_lists(source_ids=list(HOT_SOURCES.keys()))
+            # 抓取选中的热榜
+            hot_lists = await rss_fetcher.fetch_all_hot_lists(source_ids=builtin_source_ids)
 
-            # 抓取自定义数据源
+            # 抓取自定义数据源（自定义源不受选择限制，始终抓取）
             for custom in custom_sources:
                 if custom["enabled"]:
                     hot_list = await rss_fetcher.fetch_custom_source(custom)

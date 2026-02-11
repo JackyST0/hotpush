@@ -2,9 +2,11 @@
 配置管理服务
 统一管理配置读写，支持数据库配置优先于环境变量配置
 """
+import json
 from typing import Optional, Dict, Any, List
 from app.services.database import db
 from app.config import settings
+from app.utils.sources import HOT_SOURCES
 
 
 class ConfigService:
@@ -112,6 +114,36 @@ class ConfigService:
     def delete_push_channel(self, channel_id: str):
         """删除推送渠道配置（恢复使用环境变量）"""
         db.delete_push_channel(channel_id)
+
+    # ===== 推送数据源选择 =====
+
+    def get_push_sources(self) -> Optional[List[str]]:
+        """
+        获取推送数据源选择
+        返回 None 表示未配置（推送所有源，向下兼容）
+        返回空列表 [] 表示用户明确不推送任何内置源
+        返回非空列表表示只推送指定的源
+        """
+        value = db.get_setting("push_sources")
+        if value is not None:
+            try:
+                sources = json.loads(value)
+                if isinstance(sources, list):
+                    # 过滤掉无效的源 ID
+                    valid_sources = [s for s in sources if s in HOT_SOURCES]
+                    return valid_sources
+            except json.JSONDecodeError:
+                pass
+        return None  # 未配置 = 推送所有
+
+    def set_push_sources(self, sources: List[str]):
+        """
+        设置推送数据源选择
+        始终保存显式列表
+        """
+        # 过滤无效的源 ID
+        valid_sources = [s for s in sources if s in HOT_SOURCES]
+        db.set_setting("push_sources", json.dumps(valid_sources))
 
     def is_push_channel_configured(self, channel_id: str) -> bool:
         """检查推送渠道是否已配置"""

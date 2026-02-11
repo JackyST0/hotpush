@@ -53,6 +53,94 @@
             </div>
         </div>
 
+        <!-- 推送数据源选择 -->
+        <div class="glass rounded-2xl overflow-hidden">
+            <div class="p-6 border-b border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-xl text-white">
+                            <i class="fas fa-filter text-blue-400 mr-2"></i>推送数据源
+                        </h3>
+                        <p class="text-gray-500 text-sm mt-2">选择需要推送的热榜平台，未选中的平台将不会推送消息</p>
+                    </div>
+                    <div v-if="isAdmin && !sourcesLoading" class="flex items-center space-x-2">
+                        <button
+                            @click="toggleAllSources"
+                            class="px-3 py-1.5 text-xs glass rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition"
+                        >
+                            {{ isAllSelected ? '取消全选' : '全选' }}
+                        </button>
+                        <button
+                            v-if="sourcesChanged"
+                            @click="savePushSources"
+                            :disabled="savingSources"
+                            class="px-4 py-1.5 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:opacity-90 transition disabled:opacity-50 font-medium"
+                        >
+                            <i v-if="savingSources" class="fas fa-spinner animate-spin mr-1"></i>
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div v-if="sourcesLoading" class="text-center py-8 text-gray-400">
+                    <i class="fas fa-spinner animate-spin text-2xl"></i>
+                    <p class="mt-2">加载中...</p>
+                </div>
+                <div v-else class="space-y-5">
+                    <!-- 提示信息 -->
+                    <div class="flex items-center space-x-2 text-sm bg-white/5 rounded-lg px-4 py-2.5"
+                         :class="selectedSources.length === 0 ? 'text-amber-400' : 'text-gray-400'">
+                        <i :class="selectedSources.length === 0 ? 'fas fa-exclamation-triangle text-amber-400' : 'fas fa-info-circle text-blue-400'"></i>
+                        <span>{{ selectedSources.length === 0 ? '未选择任何平台，不会推送任何消息' : isAllSelected ? '已选择全部平台' : `已选择 ${selectedSources.length} / ${allSources.length} 个平台` }}</span>
+                    </div>
+
+                    <!-- 按分类分组 -->
+                    <div v-for="(sourceIds, category) in categories" :key="category" class="space-y-2">
+                        <div class="flex items-center space-x-2 mb-3">
+                            <span class="text-sm font-medium text-gray-300">{{ category }}</span>
+                            <span class="text-xs text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">{{ sourceIds.length }}</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                            <div
+                                v-for="sourceId in sourceIds"
+                                :key="sourceId"
+                                @click="isAdmin && toggleSource(sourceId)"
+                                :class="[
+                                    'flex items-center space-x-3 p-3 rounded-xl border transition-all',
+                                    isAdmin ? 'cursor-pointer' : 'cursor-default',
+                                    isSourceSelected(sourceId)
+                                        ? 'border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/15'
+                                        : 'border-white/5 bg-white/[0.02] hover:bg-white/5'
+                                ]"
+                            >
+                                <div :class="[
+                                    'w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all',
+                                    isSourceSelected(sourceId)
+                                        ? 'bg-amber-500 text-white'
+                                        : 'border border-white/20'
+                                ]">
+                                    <i v-if="isSourceSelected(sourceId)" class="fas fa-check text-[10px]"></i>
+                                </div>
+                                <div class="flex items-center space-x-2 min-w-0">
+                                    <img
+                                        v-if="getSourceIcon(sourceId)"
+                                        :src="getSourceIcon(sourceId)"
+                                        class="w-4 h-4 rounded flex-shrink-0"
+                                        @error="$event.target.style.display='none'"
+                                    >
+                                    <span :class="[
+                                        'text-sm truncate',
+                                        isSourceSelected(sourceId) ? 'text-white' : 'text-gray-400'
+                                    ]">{{ getSourceName(sourceId) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 配置指南 -->
         <div class="glass rounded-xl overflow-hidden">
             <div class="p-4 border-b border-white/5">
@@ -253,7 +341,28 @@ const saving = ref(false)
 const testing = ref(false)
 const testingChannel = ref(null)
 
+// 推送数据源选择
+const sourcesLoading = ref(false)
+const savingSources = ref(false)
+const allSources = ref([])             // 所有可用数据源
+const categories = ref({})             // 分类信息
+const selectedSources = ref([])        // UI 中选中的数据源（始终使用显式列表）
+const originalSelectedSources = ref([])  // 保存前的原始值，用于检测变更
+
 const isAdmin = computed(() => currentUser.value?.role === 'admin')
+
+// 检查是否有未保存的变更
+const sourcesChanged = computed(() => {
+    const current = [...selectedSources.value].sort()
+    const original = [...originalSelectedSources.value].sort()
+    return JSON.stringify(current) !== JSON.stringify(original)
+})
+
+// 检查是否全选
+const isAllSelected = computed(() => {
+    if (allSources.value.length === 0) return false
+    return selectedSources.value.length === allSources.value.length
+})
 
 const getChannelIcon = (id) => {
     const icons = {
@@ -396,7 +505,84 @@ const testChannelDirect = async (channel) => {
     }
 }
 
+// ===== 推送数据源选择方法 =====
+
+const fetchPushSources = async () => {
+    sourcesLoading.value = true
+    try {
+        const data = await apiCall('/config/push-sources')
+        allSources.value = data.all_sources || []
+        categories.value = data.categories || {}
+        const apiSources = data.selected_sources || []
+        const isConfigured = data.is_configured || false
+        
+        if (!isConfigured) {
+            // 未配置过 → 默认全选
+            selectedSources.value = allSources.value.map(s => s.id)
+        } else {
+            // 已配置 → 使用保存的选择
+            selectedSources.value = [...apiSources]
+        }
+        originalSelectedSources.value = [...selectedSources.value]
+    } catch (e) {
+        showToast('加载推送数据源配置失败', 'error')
+    } finally {
+        sourcesLoading.value = false
+    }
+}
+
+const getSourceName = (sourceId) => {
+    const source = allSources.value.find(s => s.id === sourceId)
+    return source ? source.name : sourceId
+}
+
+const getSourceIcon = (sourceId) => {
+    const source = allSources.value.find(s => s.id === sourceId)
+    return source ? source.icon : ''
+}
+
+const isSourceSelected = (sourceId) => {
+    return selectedSources.value.includes(sourceId)
+}
+
+const toggleSource = (sourceId) => {
+    const index = selectedSources.value.indexOf(sourceId)
+    if (index > -1) {
+        selectedSources.value.splice(index, 1)
+    } else {
+        selectedSources.value.push(sourceId)
+    }
+}
+
+const toggleAllSources = () => {
+    if (isAllSelected.value) {
+        // 取消全选：清空所有
+        selectedSources.value = []
+    } else {
+        // 全选：选中所有源
+        selectedSources.value = allSources.value.map(s => s.id)
+    }
+}
+
+const savePushSources = async () => {
+    savingSources.value = true
+    try {
+        // 始终发送显式的数据源列表
+        await apiCall('/config/push-sources', {
+            method: 'PUT',
+            body: JSON.stringify({ sources: selectedSources.value })
+        })
+        originalSelectedSources.value = [...selectedSources.value]
+        showToast('推送数据源设置已保存', 'success')
+    } catch (e) {
+        showToast('保存推送数据源失败', 'error')
+    } finally {
+        savingSources.value = false
+    }
+}
+
 onMounted(() => {
     fetchChannels()
+    fetchPushSources()
 })
 </script>

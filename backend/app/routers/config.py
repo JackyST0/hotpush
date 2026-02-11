@@ -4,12 +4,13 @@
 """
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 
 from app.services.config_service import config_service
 from app.services.push_service import push_service
 from app.models.schemas import PushMessage, PushChannel
 from app.middleware.auth import require_auth, require_admin
+from app.utils.sources import HOT_SOURCES, CATEGORIES
 
 
 router = APIRouter()
@@ -26,6 +27,11 @@ class PushChannelConfig(BaseModel):
 class TestPushRequest(BaseModel):
     """测试推送请求"""
     message: str = "这是一条测试消息"
+
+
+class PushSourcesUpdate(BaseModel):
+    """更新推送数据源选择"""
+    sources: List[str]  # 选中的数据源 ID 列表，空列表表示推送所有源
 
 
 # ===== 系统设置 API =====
@@ -163,6 +169,55 @@ async def delete_push_channel(
     config_service.delete_push_channel(channel_id)
     push_service.refresh_config()
     return {"success": True, "message": f"{channel_id} 配置已删除，将使用环境变量配置"}
+
+
+# ===== 推送数据源选择 API =====
+
+@router.get("/push-sources")
+async def get_push_sources(_: dict = Depends(require_auth)):
+    """获取推送数据源选择配置"""
+    selected_sources = config_service.get_push_sources()
+
+    # 构建带分类的数据源列表
+    all_sources = []
+    for source_id, source_info in HOT_SOURCES.items():
+        all_sources.append({
+            "id": source_id,
+            "name": source_info["name"],
+            "category": source_info.get("category", "其他"),
+            "icon": source_info.get("icon", ""),
+        })
+
+    return {
+        # None 表示未配置（推送全部），空列表表示不推送，非空列表表示只推送选中的
+        "selected_sources": selected_sources if selected_sources is not None else [],
+        "is_configured": selected_sources is not None,  # 是否已手动配置过
+        "all_sources": all_sources,
+        "categories": CATEGORIES,
+    }
+
+
+@router.put("/push-sources")
+async def update_push_sources(
+    data: PushSourcesUpdate,
+    _: dict = Depends(require_admin)
+):
+    """更新推送数据源选择"""
+    # 验证源 ID 是否有效
+    invalid_sources = [s for s in data.sources if s not in HOT_SOURCES]
+    if invalid_sources:
+        raise HTTPException(
+            status_code=400,
+            detail=f"无效的数据源 ID: {', '.join(invalid_sources)}"
+        )
+
+    config_service.set_push_sources(data.sources)
+
+    return {
+        "success": True,
+        "message": "推送数据源选择已更新",
+        "selected_sources": data.sources
+    }
 
 
 @router.post("/push/{channel_id}/test")
