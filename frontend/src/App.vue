@@ -9,25 +9,21 @@
             <Sidebar @logout="handleLogout" />
 
             <!-- Main Content -->
-            <main class="flex-1 overflow-auto">
-                <!-- Sticky Header -->
-                <div class="sticky top-0 z-10 px-6 pt-6 pb-2 backdrop-blur-xl bg-black/30">
-                    <AppHeader
-                        :view-title="currentRoute?.meta?.title || '热搜榜'"
-                        :view-subtitle="currentRoute?.meta?.subtitle || ''"
-                        :last-update="appStore.lastUpdate"
-                        @refresh="handleRefresh"
-                    />
-                </div>
+            <main class="flex-1 overflow-auto p-6">
+                <!-- Header -->
+                <AppHeader
+                    :view-title="currentRoute?.meta?.title || '热搜榜'"
+                    :view-subtitle="currentRoute?.meta?.subtitle || ''"
+                    :last-update="appStore.lastUpdate"
+                    @refresh="handleRefresh"
+                />
 
                 <!-- Router View with Transition -->
-                <div class="px-6 pb-6">
-                    <RouterView v-slot="{ Component }">
-                        <Transition name="fade" mode="out-in">
-                            <component :is="Component" />
-                        </Transition>
-                    </RouterView>
-                </div>
+                <RouterView v-slot="{ Component }">
+                    <Transition name="fade" mode="out-in">
+                        <component :is="Component" />
+                    </Transition>
+                </RouterView>
             </main>
         </div>
 

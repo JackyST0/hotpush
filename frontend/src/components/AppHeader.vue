@@ -1,5 +1,5 @@
 <template>
-    <div class="glass rounded-xl p-4 flex items-center justify-between mb-4">
+    <div class="glass rounded-xl p-4 flex items-center justify-between mb-6">
         <div>
             <h2 class="text-2xl font-bold text-white">{{ viewTitle }}</h2>
             <p class="text-gray-500 text-sm mt-1">{{ viewSubtitle }}</p>
