@@ -31,7 +31,15 @@ export function useApi() {
             if (typeof error.detail === 'string') {
                 message = error.detail
             } else if (Array.isArray(error.detail)) {
-                message = error.detail.map(e => e.msg || e.message || '').filter(Boolean).join('; ')
+                message = error.detail
+                    .map(e => {
+                        let msg = e.msg || e.message || ''
+                        // 去掉 Pydantic 的技术前缀如 "Value error, "
+                        msg = msg.replace(/^Value error,\s*/i, '')
+                        return msg
+                    })
+                    .filter(Boolean)
+                    .join('; ')
             } else if (error.message) {
                 message = error.message
             }
