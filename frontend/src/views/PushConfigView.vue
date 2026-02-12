@@ -115,10 +115,10 @@
                                 ]"
                             >
                                 <div :class="[
-                                    'w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all',
+                                    'w-[18px] h-[18px] rounded flex items-center justify-center flex-shrink-0 transition-all',
                                     isSourceSelected(sourceId)
-                                        ? 'bg-amber-500 text-white'
-                                        : 'border border-white/20'
+                                        ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30'
+                                        : 'border-2 border-gray-400/50'
                                 ]">
                                     <i v-if="isSourceSelected(sourceId)" class="fas fa-check text-[10px]"></i>
                                 </div>
