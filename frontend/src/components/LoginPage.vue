@@ -171,6 +171,7 @@ const handleForgotPassword = () => {
 const handleLogin = async () => {
     if (!username.value || !password.value) {
         error.value = '请输入用户名和密码'
+        setTimeout(() => { error.value = '' }, 3000)
         return
     }
 
@@ -192,9 +193,11 @@ const handleLogin = async () => {
             emit('login-success')
         } else {
             error.value = result.message || '登录失败'
+            setTimeout(() => { error.value = '' }, 3000)
         }
     } catch (e) {
         error.value = e.message || '网络错误，请稍后重试'
+        setTimeout(() => { error.value = '' }, 3000)
     } finally {
         loading.value = false
     }
