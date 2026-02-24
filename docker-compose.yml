@@ -45,8 +45,8 @@ services:
   backend:
     build: ./backend
     container_name: hotpush-backend
-    ports:
-      - "8001:8000"  
+    expose:
+      - "8000"
     environment:
       - DEBUG=false
       # 数据库配置（密码需与上方 MySQL 配置一致）

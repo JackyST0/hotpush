@@ -127,8 +127,7 @@ cd hotpush
 # 启动
 docker-compose up -d
 
-# 访问前端 http://localhost:3000
-# 访问 API http://localhost:8000
+# 访问 http://localhost:3001
 ```
 
 > ⚠️ **重要**：项目自带 RSSHub 实例，部分数据源需要配置 Cookie 才能正常使用，详见 [Cookie 配置说明](#-cookie-配置)
