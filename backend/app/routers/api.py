@@ -291,6 +291,7 @@ async def get_stats():
         "custom_sources": enabled_custom,
         "categories_count": len(CATEGORIES),
         "configured_channels": len(push_service.get_configured_channels()),
+        "total_channels": len(PushChannel),
         "redis_enabled": cache.is_available(),
         "redis_stats": cache.get_stats() if cache.is_available() else {}
     }

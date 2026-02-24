@@ -39,7 +39,7 @@
                     <div class="text-xs text-gray-500">数据源</div>
                 </div>
                 <div class="glass rounded-lg p-3">
-                    <div class="text-lg font-bold text-white">{{ appStore.stats?.configured_channels || 0 }}</div>
+                    <div class="text-lg font-bold text-white">{{ appStore.stats?.configured_channels || 0 }}<span class="text-sm font-normal text-gray-400">/{{ appStore.stats?.total_channels || 7 }}</span></div>
                     <div class="text-xs text-gray-500">推送渠道</div>
                 </div>
             </div>
