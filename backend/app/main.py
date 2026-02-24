@@ -47,7 +47,7 @@ redoc_url = "/redoc" if settings.debug else None
 app = FastAPI(
     title="HotPush",
     description="热点聚合推送平台 - 聚合全网热点，主动推送到你指定的平台",
-    version="0.1.0",
+    version="0.5.0",
     lifespan=lifespan,
     docs_url=docs_url,
     redoc_url=redoc_url,
@@ -91,7 +91,7 @@ async def root():
         return FileResponse(index_file)
     return {
         "name": "HotPush",
-        "version": "0.1.0",
+        "version": "0.5.0",
         "description": "热点聚合推送平台",
         "docs": "/docs"
     }

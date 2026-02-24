@@ -2,6 +2,7 @@
 
 > 热点聚合推送平台 - 聚合全网热点，主动推送到你指定的平台
 
+[![CI](https://github.com/JackyST0/hotpush/actions/workflows/ci.yml/badge.svg)](https://github.com/JackyST0/hotpush/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)

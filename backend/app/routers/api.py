@@ -246,8 +246,8 @@ async def get_push_channels():
         {"id": "wecom", "name": "企业微信", "configured": PushChannel.WECOM in configured},
         {"id": "feishu", "name": "飞书", "configured": PushChannel.FEISHU in configured},
         {"id": "dingtalk", "name": "钉钉", "configured": PushChannel.DINGTALK in configured},
-        {"id": "email", "name": "邮件", "configured": False},  # TODO
-        {"id": "webhook", "name": "Webhook", "configured": False},  # 需要用户配置
+        {"id": "email", "name": "邮件", "configured": PushChannel.EMAIL in configured},
+        {"id": "webhook", "name": "Webhook", "configured": PushChannel.WEBHOOK in configured},
     ]
     
     return {"channels": all_channels}
