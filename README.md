@@ -137,6 +137,13 @@ docker-compose up -d
 - 用户名：`admin`
 - 密码：`admin123`（请在 `docker-compose.yml` 中修改）
 
+**部署后请修改以下配置**：
+```bash
+# 生成随机 JWT 密钥（防止重启后用户登录失效）
+openssl rand -base64 32
+```
+将生成的字符串填入 `docker-compose.yml` 的 `JWT_SECRET` 中。
+
 ### 方式二：本地开发
 
 #### 1. 启动后端

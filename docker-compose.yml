@@ -56,7 +56,8 @@ services:
       # ⚠️ 管理员账号（生产环境必须修改密码！）
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=admin123  # 请修改为强密码
-      # JWT 密钥（生产环境必须修改！固定值可防止重启后用户登录失效）
+      # JWT 密钥（用于用户登录令牌加密，固定值可防止重启后登录失效）
+      # ⚠️ 请替换为任意随机字符串，建议 16 位以上，例如：openssl rand -base64 32
       - JWT_SECRET=please-change-this-to-a-random-string
       # RSSHub 实例配置
       - RSSHUB_URL=http://rsshub:1200
