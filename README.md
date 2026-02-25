@@ -127,7 +127,7 @@ cd hotpush
 # 编辑 backend/.env，配置推送渠道
 
 # 启动
-docker-compose up -d
+docker compose up -d
 
 # 访问 http://localhost:3001
 ```
@@ -309,9 +309,9 @@ rsshub:
 <details>
 <summary><b>Q: Docker 部署后无法访问？</b></summary>
 
-1. 确保所有服务正常启动：`docker-compose ps`
+1. 确保所有服务正常启动：`docker compose ps`
 2. 检查端口是否被占用：3000（前端）、8000（后端）
-3. 查看日志定位问题：`docker-compose logs -f`
+3. 查看日志定位问题：`docker compose logs -f`
 </details>
 
 ## 🤝 贡献

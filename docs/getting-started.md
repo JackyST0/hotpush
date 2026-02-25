@@ -118,13 +118,13 @@ cp backend/.env.example backend/.env
 ### 2. 启动
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. 查看日志
 
 ```bash
-docker-compose logs -f hotpush
+docker compose logs -f hotpush
 ```
 
 ## 首次登录
