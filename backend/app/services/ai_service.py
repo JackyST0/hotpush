@@ -127,10 +127,16 @@ class AIService:
             litellm.suppress_debug_info = True
 
             if base_url:
-                if not model.startswith("openai/"):
+                if model.startswith("openai/"):
+                    if not base_url.endswith("/v1"):
+                        base_url = f"{base_url}/v1"
+                elif model.startswith(("gpt-", "deepseek/", "moonshot/")):
                     model = f"openai/{model}"
-                if not base_url.endswith("/v1"):
-                    base_url = f"{base_url}/v1"
+                    if not base_url.endswith("/v1"):
+                        base_url = f"{base_url}/v1"
+                elif model.startswith("claude"):
+                    if base_url.endswith("/v1"):
+                        base_url = base_url[:-3]
 
             kwargs = {
                 "model": model,
