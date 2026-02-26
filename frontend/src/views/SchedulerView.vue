@@ -308,7 +308,7 @@
                             <input
                                 :type="showApiKey ? 'text' : 'password'"
                                 v-model="aiForm.api_key"
-                                :placeholder="aiKeyConfigured ? '已配置（留空则不修改）' : 'sk-...'"
+                                placeholder="sk-..."
                                 class="w-full px-4 py-2.5 pr-10 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 outline-none text-white placeholder-gray-600 text-sm"
                             >
                             <button
@@ -389,7 +389,6 @@ const aiConfig = ref({})
 const aiForm = ref({ model: 'gpt-4o-mini', api_key: '', base_url: '', summary_style: 'brief' })
 const savingAI = ref(false)
 const showApiKey = ref(false)
-const aiKeyConfigured = ref(false)
 
 const summaryStyles = [
     { value: 'brief', label: '简洁速递' },
@@ -559,10 +558,9 @@ const fetchAIConfig = async () => {
     try {
         const data = await apiCall('/scheduler/ai-config')
         aiConfig.value = data
-        aiKeyConfigured.value = !!(data.api_key && data.api_key.includes('****'))
         aiForm.value = {
             model: data.model || 'gpt-4o-mini',
-            api_key: '',
+            api_key: data.api_key || '',
             base_url: data.base_url || '',
             summary_style: data.summary_style || 'brief',
         }
@@ -588,7 +586,7 @@ const saveAIConfig = async () => {
     savingAI.value = true
     try {
         const payload = { ...aiForm.value }
-        if (!payload.api_key) {
+        if (!payload.api_key || payload.api_key.endsWith('****')) {
             delete payload.api_key
         }
         await apiCall('/scheduler/ai-config', {
@@ -596,10 +594,6 @@ const saveAIConfig = async () => {
             body: JSON.stringify(payload)
         })
         showToast('AI 配置已保存', 'success')
-        if (aiForm.value.api_key) {
-            aiKeyConfigured.value = true
-        }
-        aiForm.value.api_key = ''
         fetchAIConfig()
     } catch (e) {
         showToast(e.message || '保存失败', 'error')
