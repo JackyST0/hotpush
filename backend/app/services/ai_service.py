@@ -109,7 +109,7 @@ class AIService:
 
         model = config.get("model", "gpt-4o-mini")
         api_key = config.get("api_key", "")
-        base_url = config.get("base_url", "")
+        base_url = config.get("base_url", "").rstrip("/")
 
         if not api_key:
             logger.warning("AI API Key 未配置，跳过 AI 摘要")
@@ -125,6 +125,12 @@ class AIService:
         try:
             import litellm
             litellm.suppress_debug_info = True
+
+            if base_url:
+                if not model.startswith("openai/"):
+                    model = f"openai/{model}"
+                if not base_url.endswith("/v1"):
+                    base_url = f"{base_url}/v1"
 
             kwargs = {
                 "model": model,
