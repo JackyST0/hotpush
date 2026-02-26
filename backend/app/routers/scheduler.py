@@ -152,12 +152,9 @@ class AIConfigUpdate(BaseModel):
 
 
 @router.get("/ai-config")
-async def get_ai_config(_: dict = Depends(require_auth)):
-    """获取 AI 摘要配置"""
-    config = ai_service.get_config()
-    if config.get("api_key"):
-        config["api_key"] = config["api_key"][:8] + "****"
-    return config
+async def get_ai_config(_: dict = Depends(require_admin)):
+    """获取 AI 摘要配置（仅管理员可见完整 Key）"""
+    return ai_service.get_config()
 
 
 @router.put("/ai-config")
@@ -182,8 +179,4 @@ async def update_ai_config(
         current_config["summary_style"] = config.summary_style
 
     ai_service.set_config(current_config)
-
-    safe_config = current_config.copy()
-    if safe_config.get("api_key"):
-        safe_config["api_key"] = safe_config["api_key"][:8] + "****"
-    return {"success": True, "message": "AI 配置已更新", "config": safe_config}
+    return {"success": True, "message": "AI 配置已更新", "config": current_config}

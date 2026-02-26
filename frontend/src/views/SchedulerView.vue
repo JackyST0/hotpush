@@ -571,7 +571,7 @@ const fetchAIConfig = async () => {
 
 const toggleAI = async () => {
     if (!aiConfig.value.enabled) {
-        const key = aiForm.value.api_key || aiConfig.value.api_key
+        const key = aiForm.value.api_key
         if (!key || !aiForm.value.model) {
             showToast('请先配置模型和 API Key 后再启用', 'error')
             return
@@ -593,7 +593,7 @@ const saveAIConfig = async () => {
     savingAI.value = true
     try {
         const payload = { ...aiForm.value }
-        if (!payload.api_key || payload.api_key.endsWith('****')) {
+        if (!payload.api_key) {
             delete payload.api_key
         }
         await apiCall('/scheduler/ai-config', {
@@ -602,11 +602,7 @@ const saveAIConfig = async () => {
         })
         showToast('AI 配置已保存', 'success')
         showApiKey.value = false
-        const savedKey = aiForm.value.api_key
-        await fetchAIConfig()
-        if (savedKey && !savedKey.endsWith('****')) {
-            aiForm.value.api_key = savedKey
-        }
+        fetchAIConfig()
     } catch (e) {
         showToast(e.message || '保存失败', 'error')
     } finally {
