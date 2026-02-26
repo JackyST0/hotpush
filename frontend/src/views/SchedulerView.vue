@@ -594,7 +594,12 @@ const saveAIConfig = async () => {
             body: JSON.stringify(payload)
         })
         showToast('AI 配置已保存', 'success')
-        fetchAIConfig()
+        showApiKey.value = false
+        const savedKey = aiForm.value.api_key
+        await fetchAIConfig()
+        if (savedKey && !savedKey.endsWith('****')) {
+            aiForm.value.api_key = savedKey
+        }
     } catch (e) {
         showToast(e.message || '保存失败', 'error')
     } finally {
