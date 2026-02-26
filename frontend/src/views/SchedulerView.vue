@@ -304,13 +304,20 @@
                     <!-- API Key Config -->
                     <div class="glass rounded-xl p-5">
                         <div class="text-gray-400 mb-3"><i class="fas fa-key mr-2"></i>API Key</div>
-                        <div v-if="isAdmin">
+                        <div v-if="isAdmin" class="relative">
                             <input
-                                type="password"
+                                :type="showApiKey ? 'text' : 'password'"
                                 v-model="aiForm.api_key"
-                                placeholder="sk-..."
-                                class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 outline-none text-white placeholder-gray-600 text-sm"
+                                :placeholder="aiKeyConfigured ? '已配置（留空则不修改）' : 'sk-...'"
+                                class="w-full px-4 py-2.5 pr-10 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 outline-none text-white placeholder-gray-600 text-sm"
                             >
+                            <button
+                                type="button"
+                                @click="showApiKey = !showApiKey"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
+                            >
+                                <i :class="['fas', showApiKey ? 'fa-eye-slash' : 'fa-eye']"></i>
+                            </button>
                         </div>
                         <div v-else class="text-white font-medium">{{ aiConfig.api_key ? '已配置' : '未配置' }}</div>
                     </div>
@@ -381,6 +388,8 @@ const digestForm = ref({ time: '08:00', top_n: 10 })
 const aiConfig = ref({})
 const aiForm = ref({ model: 'gpt-4o-mini', api_key: '', base_url: '', summary_style: 'brief' })
 const savingAI = ref(false)
+const showApiKey = ref(false)
+const aiKeyConfigured = ref(false)
 
 const summaryStyles = [
     { value: 'brief', label: '简洁速递' },
@@ -550,9 +559,10 @@ const fetchAIConfig = async () => {
     try {
         const data = await apiCall('/scheduler/ai-config')
         aiConfig.value = data
+        aiKeyConfigured.value = !!(data.api_key && data.api_key.includes('****'))
         aiForm.value = {
             model: data.model || 'gpt-4o-mini',
-            api_key: data.api_key || '',
+            api_key: '',
             base_url: data.base_url || '',
             summary_style: data.summary_style || 'brief',
         }
@@ -578,7 +588,7 @@ const saveAIConfig = async () => {
     savingAI.value = true
     try {
         const payload = { ...aiForm.value }
-        if (payload.api_key && payload.api_key.endsWith('****')) {
+        if (!payload.api_key) {
             delete payload.api_key
         }
         await apiCall('/scheduler/ai-config', {
@@ -586,6 +596,10 @@ const saveAIConfig = async () => {
             body: JSON.stringify(payload)
         })
         showToast('AI 配置已保存', 'success')
+        if (aiForm.value.api_key) {
+            aiKeyConfigured.value = true
+        }
+        aiForm.value.api_key = ''
         fetchAIConfig()
     } catch (e) {
         showToast(e.message || '保存失败', 'error')
