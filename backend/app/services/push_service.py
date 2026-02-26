@@ -11,6 +11,71 @@ from app.models.schemas import PushMessage, HotItem, PushChannel
 from app.utils.logger import logger
 
 
+def _md_to_email_html(text: str) -> str:
+    """将 AI 摘要中的 Markdown 转换为邮件 HTML"""
+    import re
+    import html as html_module
+
+    lines = text.split("\n")
+    result = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("### "):
+            content = html_module.escape(stripped[4:])
+            result.append(f'<h4 style="margin: 12px 0 6px; color: #92400e; font-size: 14px;">{content}</h4>')
+        elif stripped.startswith("## "):
+            content = html_module.escape(stripped[3:])
+            result.append(f'<h3 style="margin: 15px 0 8px; color: #92400e; font-size: 15px;">{content}</h3>')
+        elif stripped.startswith("# "):
+            content = html_module.escape(stripped[2:])
+            result.append(f'<h2 style="margin: 18px 0 10px; color: #78350f; font-size: 16px;">{content}</h2>')
+        elif stripped == "---":
+            result.append('<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;">')
+        elif not stripped:
+            result.append("<br>")
+        else:
+            escaped = html_module.escape(line)
+            escaped = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", escaped)
+            result.append(escaped + "<br>")
+    return "\n".join(result)
+
+
+def _md_to_telegram_html(text: str) -> str:
+    """将 AI 摘要中的 Markdown 转换为 Telegram HTML"""
+    import re
+    import html as html_module
+
+    lines = text.split("\n")
+    result = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("### "):
+            content = html_module.escape(stripped[4:])
+            result.append(f"<b>{content}</b>")
+        elif stripped.startswith("## "):
+            content = html_module.escape(stripped[3:])
+            result.append(f"\n<b>{content}</b>")
+        elif stripped.startswith("# "):
+            content = html_module.escape(stripped[2:])
+            result.append(f"\n<b>{content}</b>")
+        elif stripped == "---":
+            result.append("─────────")
+        else:
+            escaped = html_module.escape(line)
+            escaped = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", escaped)
+            result.append(escaped)
+    return "\n".join(result)
+
+
+def _md_strip(text: str) -> str:
+    """去除 Markdown 标记，保留纯文本"""
+    import re
+    text = re.sub(r"^#{1,3}\s+", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+    text = text.replace("---", "─────────")
+    return text
+
+
 def get_proxy_config() -> Optional[str]:
     """获取代理配置"""
     return settings.https_proxy or settings.http_proxy
@@ -91,8 +156,8 @@ class TelegramPusher(BasePusher):
         current_length = len(current_lines[0])
 
         if message.ai_summary:
-            escaped_summary = html_module.escape(message.ai_summary)
-            summary_block = f"\n{escaped_summary}\n\n{'─' * 18}\n"
+            telegram_summary = _md_to_telegram_html(message.ai_summary)
+            summary_block = f"\n{telegram_summary}\n\n{'─' * 18}\n"
             current_lines.append(summary_block)
             current_length += len(summary_block)
         
@@ -349,7 +414,7 @@ class FeishuPusher(BasePusher):
         content = []
 
         if message.ai_summary:
-            content.append([{"tag": "text", "text": message.ai_summary + "\n\n"}])
+            content.append([{"tag": "text", "text": _md_strip(message.ai_summary) + "\n\n"}])
             content.append([{"tag": "text", "text": "─────────────\n\n"}])
 
         # 合并推送：按平台分组显示
@@ -586,11 +651,11 @@ class EmailPusher(BasePusher):
         content_html = ""
 
         if message.ai_summary:
-            escaped = html_module.escape(message.ai_summary).replace("\n", "<br>")
+            summary_html = _md_to_email_html(message.ai_summary)
             content_html += f'''
             <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 0 8px 8px 0; line-height: 1.8;">
                 <div style="font-weight: bold; color: #92400e; margin-bottom: 8px;">🤖 AI 摘要</div>
-                <div style="color: #451a03;">{escaped}</div>
+                <div style="color: #451a03;">{summary_html}</div>
             </div>
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
             '''
