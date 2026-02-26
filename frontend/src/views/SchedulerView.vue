@@ -570,6 +570,13 @@ const fetchAIConfig = async () => {
 }
 
 const toggleAI = async () => {
+    if (!aiConfig.value.enabled) {
+        const key = aiForm.value.api_key || aiConfig.value.api_key
+        if (!key || !aiForm.value.model) {
+            showToast('请先配置模型和 API Key 后再启用', 'error')
+            return
+        }
+    }
     try {
         await apiCall('/scheduler/ai-config', {
             method: 'PUT',
