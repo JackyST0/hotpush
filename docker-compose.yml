@@ -62,6 +62,10 @@ services:
       # RSSHub 实例配置
       - RSSHUB_URL=http://rsshub:1200
       - FETCH_INTERVAL_MINUTES=5
+      # AI 摘要配置（可选，支持 OpenAI/Claude/DeepSeek/Ollama 等）
+      # - AI_MODEL=gpt-4o-mini
+      # - AI_API_KEY=your_api_key
+      # - AI_BASE_URL=https://api.openai.com/v1
       # 推送渠道配置（取消注释并填写）
       # - TELEGRAM_BOT_TOKEN=your_bot_token
       # - TELEGRAM_CHAT_ID=your_chat_id

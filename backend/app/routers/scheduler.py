@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 from app.services.scheduler import scheduler_service
+from app.services.ai_service import ai_service
 from app.services.database import db
 from app.middleware.auth import require_auth, require_admin
 
@@ -137,3 +138,52 @@ async def trigger_digest(_: dict = Depends(require_admin)):
         return {"success": True, "message": "摘要推送已触发", "result": result.get("last_run_result")}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"触发失败: {str(e)}")
+
+
+# ===== AI 摘要配置接口 =====
+
+class AIConfigUpdate(BaseModel):
+    """更新 AI 配置"""
+    enabled: Optional[bool] = None
+    model: Optional[str] = None
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    summary_style: Optional[str] = None
+
+
+@router.get("/ai-config")
+async def get_ai_config(_: dict = Depends(require_auth)):
+    """获取 AI 摘要配置"""
+    config = ai_service.get_config()
+    if config.get("api_key"):
+        config["api_key"] = config["api_key"][:8] + "****"
+    return config
+
+
+@router.put("/ai-config")
+async def update_ai_config(
+    config: AIConfigUpdate,
+    _: dict = Depends(require_admin)
+):
+    """更新 AI 摘要配置"""
+    current_config = ai_service.get_config()
+
+    if config.enabled is not None:
+        current_config["enabled"] = config.enabled
+    if config.model is not None:
+        current_config["model"] = config.model
+    if config.api_key is not None and not config.api_key.endswith("****"):
+        current_config["api_key"] = config.api_key
+    if config.base_url is not None:
+        current_config["base_url"] = config.base_url
+    if config.summary_style is not None:
+        if config.summary_style not in ("brief", "detailed", "morning_briefing"):
+            raise HTTPException(status_code=400, detail="无效的摘要风格")
+        current_config["summary_style"] = config.summary_style
+
+    ai_service.set_config(current_config)
+
+    safe_config = current_config.copy()
+    if safe_config.get("api_key"):
+        safe_config["api_key"] = safe_config["api_key"][:8] + "****"
+    return {"success": True, "message": "AI 配置已更新", "config": safe_config}

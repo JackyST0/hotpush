@@ -278,7 +278,7 @@ rsshub:
 - [x] 自定义数据源（RSS）
 - [x] Redis 缓存
 - [x] MySQL 持久化
-- [ ] AI 摘要
+- [x] AI 摘要（支持 OpenAI / Claude / DeepSeek / Ollama 等）
 - [ ] PWA 移动端支持
 - [ ] 热搜趋势图表
 

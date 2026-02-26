@@ -73,6 +73,11 @@ class Settings(BaseSettings):
     # 钉钉配置
     dingtalk_webhook_url: Optional[str] = None
     
+    # AI 摘要配置（默认值，可通过管理界面覆盖）
+    ai_model: str = "gpt-4o-mini"
+    ai_api_key: Optional[str] = None
+    ai_base_url: Optional[str] = None
+
     # 代理配置（用于访问 Telegram 等需要代理的服务）
     http_proxy: Optional[str] = None
     https_proxy: Optional[str] = None

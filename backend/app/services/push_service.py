@@ -79,19 +79,25 @@ class TelegramPusher(BasePusher):
 
     def _format_message(self, message: PushMessage) -> list:
         """格式化 Telegram 消息，返回消息列表（支持分割长消息）"""
-        # 摘要和合并消息显示更多条目
-        max_items = 50 if message.source in ["digest", "combined"] else 10
+        import html as html_module
+
+        max_items = 50 if message.source in ["digest", "combined", "ai_digest"] else 10
         items = message.items[:max_items]
         
-        # Telegram 消息长度限制
         MAX_LENGTH = 4000
         
         messages = []
         current_lines = [f"<b>{message.title}</b>\n"]
         current_length = len(current_lines[0])
+
+        if message.ai_summary:
+            escaped_summary = html_module.escape(message.ai_summary)
+            summary_block = f"\n{escaped_summary}\n\n{'─' * 18}\n"
+            current_lines.append(summary_block)
+            current_length += len(summary_block)
         
         # 合并推送和摘要：按平台分组显示
-        if message.source in ["digest", "combined"]:
+        if message.source in ["digest", "combined", "ai_digest"]:
             # 按 source 分组
             from collections import OrderedDict
             grouped = OrderedDict()
@@ -148,7 +154,7 @@ class TelegramPusher(BasePusher):
                 current_lines.append(line)
                 current_length += len(line) + 1
             
-            if message.source not in ["digest", "combined"]:
+            if message.source not in ["digest", "combined", "ai_digest"]:
                 current_lines.append(f"\n📍 来源: {message.source}")
         
         messages.append("\n".join(current_lines))
@@ -191,13 +197,16 @@ class DiscordPusher(BasePusher):
             return False
 
     def _format_items(self, message: PushMessage) -> str:
-        max_items = 50 if message.source in ["digest", "combined"] else 10
+        max_items = 50 if message.source in ["digest", "combined", "ai_digest"] else 10
         items = message.items[:max_items]
         
         lines = []
-        
-        # 合并推送：按平台分组显示
-        if message.source in ["digest", "combined"]:
+
+        if message.ai_summary:
+            lines.append(message.ai_summary)
+            lines.append("\n---\n")
+
+        if message.source in ["digest", "combined", "ai_digest"]:
             from collections import OrderedDict
             grouped = OrderedDict()
             for item in items:
@@ -257,13 +266,16 @@ class WeComPusher(BasePusher):
             return False
 
     def _format_markdown(self, message: PushMessage) -> str:
-        max_items = 50 if message.source in ["digest", "combined"] else 10
+        max_items = 50 if message.source in ["digest", "combined", "ai_digest"] else 10
         items = message.items[:max_items]
         
         lines = [f"### {message.title}\n"]
-        
-        # 合并推送：按平台分组显示
-        if message.source in ["digest", "combined"]:
+
+        if message.ai_summary:
+            lines.append(message.ai_summary)
+            lines.append("\n---\n")
+
+        if message.source in ["digest", "combined", "ai_digest"]:
             from collections import OrderedDict
             grouped = OrderedDict()
             for item in items:
@@ -331,13 +343,17 @@ class FeishuPusher(BasePusher):
             return False
 
     def _build_content(self, message: PushMessage) -> list:
-        max_items = 50 if message.source in ["digest", "combined"] else 10
+        max_items = 50 if message.source in ["digest", "combined", "ai_digest"] else 10
         items = message.items[:max_items]
         
         content = []
-        
+
+        if message.ai_summary:
+            content.append([{"tag": "text", "text": message.ai_summary + "\n\n"}])
+            content.append([{"tag": "text", "text": "─────────────\n\n"}])
+
         # 合并推送：按平台分组显示
-        if message.source in ["digest", "combined"]:
+        if message.source in ["digest", "combined", "ai_digest"]:
             from collections import OrderedDict
             grouped = OrderedDict()
             for item in items:
@@ -411,13 +427,17 @@ class DingTalkPusher(BasePusher):
             return False
 
     def _format_markdown(self, message: PushMessage) -> str:
-        max_items = 50 if message.source in ["digest", "combined"] else 10
+        max_items = 50 if message.source in ["digest", "combined", "ai_digest"] else 10
         items = message.items[:max_items]
         
         lines = [f"### {message.title}\n"]
-        
+
+        if message.ai_summary:
+            lines.append(message.ai_summary)
+            lines.append("\n---\n")
+
         # 合并推送：按平台分组显示
-        if message.source in ["digest", "combined"]:
+        if message.source in ["digest", "combined", "ai_digest"]:
             from collections import OrderedDict
             grouped = OrderedDict()
             for item in items:
@@ -463,13 +483,17 @@ class WebhookPusher(BasePusher):
             return False
 
         try:
+            payload = {
+                "title": message.title,
+                "content": message.content,
+                "source": message.source,
+                "items": [item.model_dump() for item in message.items],
+            }
+            if message.ai_summary:
+                payload["ai_summary"] = message.ai_summary
+
             async with httpx.AsyncClient() as client:
-                response = await client.post(self.webhook_url, json={
-                    "title": message.title,
-                    "content": message.content,
-                    "source": message.source,
-                    "items": [item.model_dump() for item in message.items]
-                })
+                response = await client.post(self.webhook_url, json=payload)
                 response.raise_for_status()
                 logger.info("Webhook 推送成功")
                 return True
@@ -541,6 +565,7 @@ class EmailPusher(BasePusher):
         """格式化来源名称为中文"""
         source_names = {
             "digest": "每日摘要",
+            "ai_digest": "AI 智能摘要",
             "test": "测试推送",
             "combined": "聚合推送",
             "weibo": "微博热搜",
@@ -553,14 +578,25 @@ class EmailPusher(BasePusher):
 
     def _format_html(self, message: PushMessage) -> str:
         """格式化 HTML 邮件"""
-        # 摘要和合并消息显示更多条目
-        max_items = 50 if message.source in ["digest", "combined"] else 10
+        import html as html_module
+
+        max_items = 50 if message.source in ["digest", "combined", "ai_digest"] else 10
         items = message.items[:max_items]
 
         content_html = ""
-        
+
+        if message.ai_summary:
+            escaped = html_module.escape(message.ai_summary).replace("\n", "<br>")
+            content_html += f'''
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 0 8px 8px 0; line-height: 1.8;">
+                <div style="font-weight: bold; color: #92400e; margin-bottom: 8px;">🤖 AI 摘要</div>
+                <div style="color: #451a03;">{escaped}</div>
+            </div>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+            '''
+
         # 合并推送：按平台分组显示
-        if message.source in ["digest", "combined"]:
+        if message.source in ["digest", "combined", "ai_digest"]:
             from collections import OrderedDict
             grouped = OrderedDict()
             for item in items:

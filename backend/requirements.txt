@@ -27,6 +27,9 @@ python-dotenv>=1.0.0
 PyJWT>=2.8.0
 bcrypt>=4.0.0
 
+# AI Summary (supports OpenAI, Claude, DeepSeek, Ollama, etc.)
+litellm>=1.30.0
+
 # Testing
 pytest>=8.0.0
 pytest-asyncio>=0.23.0

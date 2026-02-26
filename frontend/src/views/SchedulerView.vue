@@ -252,9 +252,112 @@
                             <div class="text-xs text-gray-500 mt-1">推送渠道</div>
                         </div>
                     </div>
+                    <div v-if="digestStatus.last_run_result.ai_summary" class="mt-4 text-sm text-purple-400 bg-purple-500/10 px-4 py-2 rounded-lg">
+                        <i class="fas fa-robot mr-2"></i>本次摘要使用了 AI 生成
+                    </div>
                     <div v-if="digestStatus.last_run_result.error" class="mt-4 text-sm text-red-400 bg-red-500/10 px-4 py-2 rounded-lg">
                         <i class="fas fa-exclamation-circle mr-2"></i>{{ digestStatus.last_run_result.error }}
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Summary Config -->
+        <div class="glass rounded-2xl overflow-hidden mt-8">
+            <div class="p-6 border-b border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-xl text-white">
+                            <i class="fas fa-robot text-purple-400 mr-2"></i>AI 摘要
+                        </h3>
+                        <p class="text-gray-500 text-sm mt-1">使用 AI 生成智能热点摘要，支持 OpenAI、Claude、DeepSeek、Ollama 等</p>
+                    </div>
+                    <div v-if="isAdmin" class="flex items-center space-x-3">
+                        <label class="toggle-switch" @click="toggleAI">
+                            <div :class="['toggle-slider', aiConfig.enabled ? 'on' : 'off']">
+                                <span class="toggle-label-on">开</span>
+                                <span class="toggle-label-off">关</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Model Config -->
+                    <div class="glass rounded-xl p-5">
+                        <div class="text-gray-400 mb-3"><i class="fas fa-cube mr-2"></i>模型</div>
+                        <div v-if="isAdmin">
+                            <input
+                                type="text"
+                                v-model="aiForm.model"
+                                placeholder="gpt-4o-mini / claude-sonnet-4-20250514 / deepseek/deepseek-chat"
+                                class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 outline-none text-white placeholder-gray-600 text-sm"
+                            >
+                            <p class="text-xs text-gray-600 mt-2">
+                                支持 <a href="https://docs.litellm.ai/docs/providers" target="_blank" class="text-purple-400 hover:underline">litellm 所有模型</a>
+                            </p>
+                        </div>
+                        <div v-else class="text-white font-medium">{{ aiConfig.model || '未配置' }}</div>
+                    </div>
+
+                    <!-- API Key Config -->
+                    <div class="glass rounded-xl p-5">
+                        <div class="text-gray-400 mb-3"><i class="fas fa-key mr-2"></i>API Key</div>
+                        <div v-if="isAdmin">
+                            <input
+                                type="password"
+                                v-model="aiForm.api_key"
+                                placeholder="sk-..."
+                                class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 outline-none text-white placeholder-gray-600 text-sm"
+                            >
+                        </div>
+                        <div v-else class="text-white font-medium">{{ aiConfig.api_key ? '已配置' : '未配置' }}</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <!-- Base URL Config -->
+                    <div class="glass rounded-xl p-5">
+                        <div class="text-gray-400 mb-3"><i class="fas fa-link mr-2"></i>API 地址（可选）</div>
+                        <div v-if="isAdmin">
+                            <input
+                                type="text"
+                                v-model="aiForm.base_url"
+                                placeholder="留空使用默认地址，本地 Ollama: http://localhost:11434"
+                                class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 outline-none text-white placeholder-gray-600 text-sm"
+                            >
+                        </div>
+                        <div v-else class="text-white font-medium">{{ aiConfig.base_url || '默认' }}</div>
+                    </div>
+
+                    <!-- Summary Style -->
+                    <div class="glass rounded-xl p-5">
+                        <div class="text-gray-400 mb-3"><i class="fas fa-palette mr-2"></i>摘要风格</div>
+                        <div v-if="isAdmin" class="flex flex-wrap gap-2">
+                            <button
+                                v-for="style in summaryStyles"
+                                :key="style.value"
+                                @click="aiForm.summary_style = style.value"
+                                :class="['px-4 py-2 rounded-lg font-medium transition text-sm', aiForm.summary_style === style.value ? 'bg-purple-500/30 text-purple-300' : 'bg-white/5 text-gray-400 hover:bg-white/10']"
+                            >
+                                {{ style.label }}
+                            </button>
+                        </div>
+                        <div v-else class="text-white font-medium">{{ currentStyleLabel }}</div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div v-if="isAdmin" class="mt-6 flex justify-end">
+                    <button
+                        @click="saveAIConfig"
+                        :disabled="savingAI"
+                        class="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl hover:opacity-90 transition font-medium disabled:opacity-50"
+                    >
+                        <i :class="['fas mr-2', savingAI ? 'fa-spinner fa-spin' : 'fa-save']"></i>
+                        {{ savingAI ? '保存中...' : '保存配置' }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -275,8 +378,21 @@ const newInterval = ref(30)
 const triggeringFetch = ref(false)
 const triggeringDigest = ref(false)
 const digestForm = ref({ time: '08:00', top_n: 10 })
+const aiConfig = ref({})
+const aiForm = ref({ model: 'gpt-4o-mini', api_key: '', base_url: '', summary_style: 'brief' })
+const savingAI = ref(false)
+
+const summaryStyles = [
+    { value: 'brief', label: '简洁速递' },
+    { value: 'detailed', label: '详细分析' },
+    { value: 'morning_briefing', label: '晨间简报' },
+]
 
 const isAdmin = computed(() => currentUser.value?.role === 'admin')
+const currentStyleLabel = computed(() => {
+    const style = summaryStyles.find(s => s.value === aiConfig.value.summary_style)
+    return style ? style.label : '简洁速递'
+})
 
 const formatDateTime = (dateStr) => {
     if (!dateStr) return ''
@@ -430,8 +546,57 @@ const triggerDigest = async () => {
     }
 }
 
+const fetchAIConfig = async () => {
+    try {
+        const data = await apiCall('/scheduler/ai-config')
+        aiConfig.value = data
+        aiForm.value = {
+            model: data.model || 'gpt-4o-mini',
+            api_key: data.api_key || '',
+            base_url: data.base_url || '',
+            summary_style: data.summary_style || 'brief',
+        }
+    } catch (e) {
+        showToast(e.message || '获取 AI 配置失败', 'error')
+    }
+}
+
+const toggleAI = async () => {
+    try {
+        await apiCall('/scheduler/ai-config', {
+            method: 'PUT',
+            body: JSON.stringify({ enabled: !aiConfig.value.enabled })
+        })
+        showToast(aiConfig.value.enabled ? 'AI 摘要已禁用' : 'AI 摘要已启用', 'success')
+        fetchAIConfig()
+    } catch (e) {
+        showToast(e.message || '操作失败', 'error')
+    }
+}
+
+const saveAIConfig = async () => {
+    savingAI.value = true
+    try {
+        const payload = { ...aiForm.value }
+        if (payload.api_key && payload.api_key.endsWith('****')) {
+            delete payload.api_key
+        }
+        await apiCall('/scheduler/ai-config', {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+        })
+        showToast('AI 配置已保存', 'success')
+        fetchAIConfig()
+    } catch (e) {
+        showToast(e.message || '保存失败', 'error')
+    } finally {
+        savingAI.value = false
+    }
+}
+
 onMounted(() => {
     fetchSchedulerStatus()
     fetchDigestStatus()
+    fetchAIConfig()
 })
 </script>

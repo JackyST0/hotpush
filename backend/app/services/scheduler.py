@@ -16,6 +16,7 @@ from app.services.database import db
 from app.models.schemas import PushMessage, HotItem
 from app.utils.sources import HOT_SOURCES
 from app.services.config_service import config_service
+from app.services.ai_service import ai_service
 from app.utils.logger import logger
 
 
@@ -225,11 +226,21 @@ class SchedulerService:
                 self._last_digest_result = {"success": False, "error": "no_data"}
                 return
             
+            # 尝试生成 AI 摘要
+            ai_config = ai_service.get_config()
+            ai_summary = None
+            if ai_config.get("enabled"):
+                style = ai_config.get("summary_style", "brief")
+                ai_summary = await ai_service.generate_summary(hot_lists, style=style)
+                if ai_summary:
+                    logger.info("AI 摘要已生成，将附加到推送消息中")
+                else:
+                    logger.warning("AI 摘要生成失败，降级为普通摘要")
+
             # 构建摘要消息
             digest_items = []
             for hot_list in hot_lists:
                 if hot_list.items:
-                    # 添加来源标题
                     for idx, item in enumerate(hot_list.items[:top_n]):
                         item_with_source = HotItem(
                             id=f"{hot_list.source}_{idx}",
@@ -240,7 +251,7 @@ class SchedulerService:
                         )
                         digest_items.append(item_with_source)
             
-            if not digest_items:
+            if not digest_items and not ai_summary:
                 logger.warning("摘要内容为空")
                 self._last_digest_result = {"success": False, "error": "empty_digest"}
                 return
@@ -248,11 +259,13 @@ class SchedulerService:
             # 构建推送消息
             today = datetime.now().strftime("%m月%d日")
             title_suffix = "（测试）" if is_test else ""
+            title_prefix = "🤖 " if ai_summary else "📰 "
             message = PushMessage(
-                title=f"📰 {today} 热榜摘要{title_suffix}",
+                title=f"{title_prefix}{today} 热榜摘要{title_suffix}",
                 content=f"今日热榜汇总，共 {len(hot_lists)} 个来源",
-                source="digest",
-                items=digest_items  # 所有源都推送，条数由 top_n 控制
+                source="ai_digest" if ai_summary else "digest",
+                items=digest_items,
+                ai_summary=ai_summary,
             )
             
             # 推送
@@ -273,7 +286,8 @@ class SchedulerService:
                 "success": True,
                 "sources_count": len(hot_lists),
                 "items_count": len(digest_items),
-                "channels_success": success_count
+                "channels_success": success_count,
+                "ai_summary": bool(ai_summary),
             }
             logger.info(f"摘要推送完成: {len(hot_lists)} 个源，{len(digest_items)} 条内容")
             

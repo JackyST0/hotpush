@@ -63,3 +63,4 @@ class PushMessage(BaseModel):
     url: Optional[str] = None
     source: str  # 热榜源 ID
     items: List[HotItem] = []
+    ai_summary: Optional[str] = None
