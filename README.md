@@ -15,6 +15,7 @@
 - ⚡ **实时更新** - 分钟级热点监控，第一时间推送新热点
 - 🎯 **智能过滤** - 支持关键词过滤、时间段限制、来源过滤等规则
 - 🤖 **AI 摘要** - 支持 OpenAI、Claude、DeepSeek、Ollama 等，自动生成智能热点摘要
+- 📈 **趋势分析** - 可视化热搜排名变化趋势与热度走势
 - 🎨 **现代化界面** - Vue 3 + Tailwind CSS 构建的响应式前端
 - 👥 **用户管理** - 支持多用户、权限控制
 - 🐳 **一键部署** - Docker 快速启动，开箱即用
@@ -47,6 +48,11 @@
 <details>
 <summary><b>📡 数据源管理</b></summary>
 <img src="docs/images/sources.png" width="800"/>
+</details>
+
+<details>
+<summary><b>📈 趋势分析 - 排名变化与热度走势</b></summary>
+<img src="docs/images/trends.png" width="800"/>
 </details>
 
 <details>
@@ -197,6 +203,8 @@ npm run dev
 | `/api/categories` | GET | 获取分类列表 |
 | `/api/hot/{source_id}` | GET | 获取指定热榜 |
 | `/api/hot` | GET | 获取所有热榜 |
+| `/api/trends/ranking/{source_id}` | GET | 获取排名变化趋势 |
+| `/api/trends/popularity/{source_id}` | GET | 获取热度走势 |
 | `/api/push/channels` | GET | 获取推送渠道状态 |
 | `/api/push/test` | POST | 测试推送 |
 | `/api/fetch/trigger` | POST | 手动触发抓取 |
@@ -264,6 +272,7 @@ rsshub:
 |------|------|
 | **热搜榜** | 聚合展示各平台热点，支持按分类筛选，实时刷新 |
 | **数据源** | 管理内置数据源，支持添加自定义 RSS 源 |
+| **趋势分析** | 可视化各平台热搜排名变化趋势和热度走势，支持时间范围筛选 |
 | **推送配置** | 配置 Telegram、Discord、企业微信等推送渠道 |
 | **推送规则** | 设置关键词过滤、时间段限制、来源过滤等规则 |
 | **推送历史** | 查看历史推送记录，支持清理旧数据 |
@@ -282,7 +291,7 @@ rsshub:
 - [x] MySQL 持久化
 - [x] AI 摘要（支持 OpenAI / Claude / DeepSeek / Ollama 等）
 - [ ] PWA 移动端支持
-- [ ] 热搜趋势图表
+- [x] 热搜趋势图表
 
 ## 🤖 AI 摘要配置
 
