@@ -16,6 +16,7 @@
                 <i :class="isDarkMode ? 'fas fa-sun text-amber-400' : 'fas fa-moon text-amber-600'" class="text-sm"></i>
             </button>
             <button
+                v-if="showRefresh"
                 @click="$emit('refresh')"
                 class="action-btn flex items-center space-x-2"
             >
@@ -32,7 +33,8 @@ import { useTheme } from '../composables/useTheme'
 defineProps({
     viewTitle: String,
     viewSubtitle: String,
-    lastUpdate: String
+    lastUpdate: String,
+    showRefresh: { type: Boolean, default: false }
 })
 
 defineEmits(['refresh'])

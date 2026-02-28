@@ -158,10 +158,13 @@ const formatDateTime = (dateStr) => {
 const fetchHistory = async () => {
     loading.value = true
     try {
-        const data = await apiCall(`/history?offset=${historyOffset.value}&limit=${historyLimit.value}`)
-        pushHistory.value = data.history || []
-        historyTotal.value = data.total || 0
-        historyStats.value = data.stats || {}
+        const [historyData, statsData] = await Promise.all([
+            apiCall(`/history?offset=${historyOffset.value}&limit=${historyLimit.value}`),
+            apiCall('/history/stats')
+        ])
+        pushHistory.value = historyData.history || []
+        historyTotal.value = historyData.total || 0
+        historyStats.value = statsData || {}
     } catch (e) {
         showToast(e.message || '加载历史记录失败', 'error')
     } finally {

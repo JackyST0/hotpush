@@ -15,6 +15,7 @@
                     :view-title="currentRoute?.meta?.title || '热搜榜'"
                     :view-subtitle="currentRoute?.meta?.subtitle || ''"
                     :last-update="appStore.lastUpdate"
+                    :show-refresh="['hotlist', 'trends'].includes(currentRoute?.name)"
                     @refresh="handleRefresh"
                 />
 
