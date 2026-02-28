@@ -100,7 +100,7 @@
                 <i class="fas fa-chart-line text-gray-600 text-3xl mb-3 block"></i>
                 该平台暂无趋势数据
             </div>
-            <div v-else class="chart-container" style="height: 400px;">
+            <div v-else class="chart-container" style="height: 500px;">
                 <Line :data="rankingChartData" :options="rankingChartOptions" />
             </div>
         </div>
@@ -323,7 +323,7 @@ const rankingChartData = computed(() => {
 const rankingChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    layout: { padding: { top: 15 } },
+    layout: { padding: { top: 25 } },
     plugins: {
         legend: {
             position: 'bottom',
@@ -351,8 +351,7 @@ const rankingChartOptions = {
             ticks: {
                 color: '#9ca3af',
                 font: { size: 11 },
-                stepSize: 1,
-                callback: (val) => `#${val}`
+                callback: (val) => Number.isInteger(val) ? `#${val}` : ''
             },
             grid: { color: 'rgba(255,255,255,0.05)' },
             title: { display: true, text: '排名', color: '#6b7280', font: { size: 12 } }
@@ -378,7 +377,7 @@ const itemTrendChartData = computed(() => ({
 const itemTrendChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    layout: { padding: { top: 15 } },
+    layout: { padding: { top: 25 } },
     plugins: {
         legend: { display: false },
         tooltip: {
