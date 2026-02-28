@@ -48,6 +48,7 @@ services:
     expose:
       - "8000"
     environment:
+      - TZ=Asia/Shanghai
       - DEBUG=false
       # 数据库配置（密码需与上方 MySQL 配置一致）
       - DATABASE_URL=mysql://root:hotpush123@mysql:3306/hotpush
