@@ -323,7 +323,7 @@ const rankingChartData = computed(() => {
 const rankingChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    layout: { padding: { top: 40 } },
+    clip: false,
     plugins: {
         legend: {
             position: 'bottom',
@@ -377,7 +377,7 @@ const itemTrendChartData = computed(() => ({
 const itemTrendChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    layout: { padding: { top: 40 } },
+    clip: false,
     plugins: {
         legend: { display: false },
         tooltip: {
