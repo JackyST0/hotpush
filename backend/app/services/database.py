@@ -981,7 +981,7 @@ class Database:
                 """, (f"-{hours} hours", limit))
             else:
                 cursor = self._execute(conn, """
-                    SELECT item_id, title, source,
+                    SELECT item_id, MAX(title) as title, MAX(source) as source,
                            COUNT(*) as appearances,
                            MIN(`rank`) as best_rank,
                            ROUND(AVG(`rank`), 1) as avg_rank,
