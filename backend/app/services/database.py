@@ -870,11 +870,18 @@ class Database:
             return
         now = datetime.now()
         with self.get_connection() as conn:
-            for rank, item in enumerate(items, 1):
-                self._execute(conn, """
-                    INSERT INTO hot_item_snapshots (source, item_id, title, url, rank, hot_score, snapshot_time)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (source, item.id, item.title, item.url, rank, item.hot_score, now))
+            if self.db_type == "sqlite":
+                for rank_num, item in enumerate(items, 1):
+                    self._execute(conn, """
+                        INSERT INTO hot_item_snapshots (source, item_id, title, url, rank, hot_score, snapshot_time)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (source, item.id, item.title, item.url, rank_num, item.hot_score, now))
+            else:
+                for rank_num, item in enumerate(items, 1):
+                    self._execute(conn, """
+                        INSERT INTO hot_item_snapshots (source, item_id, title, url, `rank`, hot_score, snapshot_time)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, (source, item.id, item.title, item.url, rank_num, item.hot_score, now))
 
     def get_trend_data(self, source: str, hours: int = 24) -> List[Dict[str, Any]]:
         """获取指定平台的排名趋势数据"""

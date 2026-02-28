@@ -227,7 +227,7 @@ class RSSFetcher:
             cache_data = {
                 "source": hot_list.source,
                 "source_name": hot_list.source_name,
-                "items": [item.model_dump() for item in hot_list.items],
+                "items": [item.model_dump(mode="json") for item in hot_list.items],
                 "updated_at": hot_list.updated_at.isoformat() if hot_list.updated_at else None,
                 "icon": hot_list.icon
             }
