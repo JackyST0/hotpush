@@ -346,12 +346,12 @@ const rankingChartOptions = {
         },
         y: {
             reverse: true,
-            min: 1,
+            min: 0,
             ticks: {
                 color: '#9ca3af',
                 font: { size: 11 },
                 stepSize: 1,
-                callback: (val) => `#${val}`
+                callback: (val) => val >= 1 ? `#${val}` : ''
             },
             grid: { color: 'rgba(255,255,255,0.05)' },
             title: { display: true, text: '排名', color: '#6b7280', font: { size: 12 } }
@@ -393,11 +393,11 @@ const itemTrendChartOptions = {
         },
         y: {
             reverse: true,
-            min: 1,
+            min: 0,
             ticks: {
                 color: '#9ca3af',
                 stepSize: 1,
-                callback: (val) => `#${val}`
+                callback: (val) => val >= 1 ? `#${val}` : ''
             },
             grid: { color: 'rgba(255,255,255,0.05)' }
         }
