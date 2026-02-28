@@ -489,6 +489,14 @@ class SchedulerService:
 
         return filtered
 
+    async def _cleanup_snapshots_job(self):
+        """清理旧的快照数据"""
+        try:
+            db.cleanup_old_snapshots(days=7)
+            logger.info("已清理 7 天前的快照数据")
+        except Exception as e:
+            logger.error(f"快照清理失败: {e}")
+
     def start(self):
         """启动定时任务"""
         interval = self._get_interval()
@@ -504,6 +512,15 @@ class SchedulerService:
             trigger=IntervalTrigger(minutes=interval),
             id="fetch_and_push",
             name="抓取热榜并推送",
+            replace_existing=True
+        )
+
+        # 每日清理旧快照数据
+        self.scheduler.add_job(
+            self._cleanup_snapshots_job,
+            trigger=CronTrigger(hour=3, minute=0),
+            id="cleanup_snapshots",
+            name="清理旧快照数据",
             replace_existing=True
         )
 

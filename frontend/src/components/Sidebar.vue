@@ -98,6 +98,7 @@ onMounted(() => {
 const menuItems = [
     { path: '/hotlist', name: '热搜榜', icon: 'fas fa-fire', adminOnly: false },
     { path: '/sources', name: '数据源', icon: 'fas fa-rss', adminOnly: false },
+    { path: '/trends', name: '趋势分析', icon: 'fas fa-chart-line', adminOnly: false },
     { path: '/push', name: '推送配置', icon: 'fas fa-paper-plane', adminOnly: true },
     { path: '/rules', name: '推送规则', icon: 'fas fa-filter', adminOnly: true },
     { path: '/history', name: '推送历史', icon: 'fas fa-history', adminOnly: true },

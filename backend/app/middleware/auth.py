@@ -28,6 +28,7 @@ PUBLIC_PATHS = [
     "/api/auth/register",
     "/api/auth/check",
     "/api/stats",  # 统计信息公开访问
+    "/api/trends",  # 趋势分析公开访问
     "/static",
     "/bg.jpg",
     "/favicon.ico",

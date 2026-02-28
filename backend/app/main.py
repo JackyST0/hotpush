@@ -18,6 +18,7 @@ from app.routers import rules
 from app.routers import history
 from app.routers import scheduler
 from app.routers import users
+from app.routers import trends
 from app.services.scheduler import start_scheduler, stop_scheduler
 from app.middleware.auth import AuthMiddleware
 from app.config import settings
@@ -75,6 +76,7 @@ app.include_router(rules.router, prefix="/api/rules", tags=["Rules"])
 app.include_router(history.router, prefix="/api/history", tags=["History"])
 app.include_router(scheduler.router, prefix="/api/scheduler", tags=["Scheduler"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
+app.include_router(trends.router, prefix="/api/trends", tags=["Trends"])
 
 
 @app.get("/health")

@@ -215,6 +215,12 @@ class RSSFetcher:
             updated_at=datetime.now(),
             icon=source_info.get("icon")
         )
+
+        # 保存排名快照（用于趋势分析）
+        try:
+            db.save_snapshot(source_id, items)
+        except Exception as e:
+            logger.warning(f"[{source_name}] 保存快照失败: {e}")
         
         # 写入 Redis 缓存
         if cache.is_available():

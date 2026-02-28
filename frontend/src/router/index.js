@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 const HotListView = () => import('../views/HotListView.vue')
 const PushConfigView = () => import('../views/PushConfigView.vue')
 const DataSourcesView = () => import('../views/DataSourcesView.vue')
+const TrendView = () => import('../views/TrendView.vue')
 const PushRulesView = () => import('../views/PushRulesView.vue')
 const PushHistoryView = () => import('../views/PushHistoryView.vue')
 const SchedulerView = () => import('../views/SchedulerView.vue')
@@ -26,6 +27,12 @@ const routes = [
         name: 'sources',
         component: DataSourcesView,
         meta: { title: '数据源', subtitle: '查看数据源', icon: 'fas fa-rss' }
+    },
+    {
+        path: '/trends',
+        name: 'trends',
+        component: TrendView,
+        meta: { title: '趋势分析', subtitle: '热搜排名趋势和统计', icon: 'fas fa-chart-line' }
     },
     {
         path: '/push',

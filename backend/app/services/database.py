@@ -231,6 +231,30 @@ class Database:
             ON users(username)
         """)
 
+        # 热搜排名快照表
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS hot_item_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source TEXT NOT NULL,
+                item_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                url TEXT,
+                rank INTEGER NOT NULL,
+                hot_score TEXT,
+                snapshot_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_snapshots_source_time
+            ON hot_item_snapshots(source, snapshot_time)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_snapshots_item
+            ON hot_item_snapshots(item_id, snapshot_time)
+        """)
+
     def _init_mysql_tables(self, conn):
         """初始化 MySQL 表"""
         cursor = conn.cursor()
@@ -330,6 +354,22 @@ class Database:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_login TIMESTAMP NULL,
                 INDEX idx_users_username (username)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """)
+
+        # 热搜排名快照表
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS hot_item_snapshots (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                source VARCHAR(100) NOT NULL,
+                item_id VARCHAR(255) NOT NULL,
+                title TEXT NOT NULL,
+                url TEXT,
+                `rank` INT NOT NULL,
+                hot_score VARCHAR(100),
+                snapshot_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_snapshots_source_time (source, snapshot_time),
+                INDEX idx_snapshots_item (item_id, snapshot_time)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
 
@@ -820,6 +860,163 @@ class Database:
             password=settings.admin_password,
             role="admin"
         )
+
+
+    # ===== 热搜快照相关方法 =====
+
+    def save_snapshot(self, source: str, items: list):
+        """保存热搜排名快照"""
+        if not items:
+            return
+        now = datetime.now()
+        with self.get_connection() as conn:
+            for rank, item in enumerate(items, 1):
+                self._execute(conn, """
+                    INSERT INTO hot_item_snapshots (source, item_id, title, url, rank, hot_score, snapshot_time)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (source, item.id, item.title, item.url, rank, item.hot_score, now))
+
+    def get_trend_data(self, source: str, hours: int = 24) -> List[Dict[str, Any]]:
+        """获取指定平台的排名趋势数据"""
+        with self.get_connection() as conn:
+            if self.db_type == "sqlite":
+                cursor = self._execute(conn, """
+                    SELECT item_id, title, rank, snapshot_time
+                    FROM hot_item_snapshots
+                    WHERE source = ? AND snapshot_time > datetime('now', ?)
+                    ORDER BY snapshot_time ASC, rank ASC
+                """, (source, f"-{hours} hours"))
+            else:
+                cursor = self._execute(conn, """
+                    SELECT item_id, title, `rank`, snapshot_time
+                    FROM hot_item_snapshots
+                    WHERE source = ? AND snapshot_time > DATE_SUB(NOW(), INTERVAL %s HOUR)
+                    ORDER BY snapshot_time ASC, `rank` ASC
+                """, (source, hours))
+            rows = cursor.fetchall()
+            return [
+                {
+                    "item_id": row["item_id"],
+                    "title": row["title"],
+                    "rank": row["rank"],
+                    "snapshot_time": str(row["snapshot_time"])
+                }
+                for row in rows
+            ]
+
+    def get_item_trend(self, item_id: str, hours: int = 24) -> List[Dict[str, Any]]:
+        """获取指定热搜条目的排名趋势"""
+        with self.get_connection() as conn:
+            if self.db_type == "sqlite":
+                cursor = self._execute(conn, """
+                    SELECT source, title, rank, snapshot_time
+                    FROM hot_item_snapshots
+                    WHERE item_id = ? AND snapshot_time > datetime('now', ?)
+                    ORDER BY snapshot_time ASC
+                """, (item_id, f"-{hours} hours"))
+            else:
+                cursor = self._execute(conn, """
+                    SELECT source, title, `rank`, snapshot_time
+                    FROM hot_item_snapshots
+                    WHERE item_id = ? AND snapshot_time > DATE_SUB(NOW(), INTERVAL %s HOUR)
+                    ORDER BY snapshot_time ASC
+                """, (item_id, hours))
+            rows = cursor.fetchall()
+            return [
+                {
+                    "source": row["source"],
+                    "title": row["title"],
+                    "rank": row["rank"],
+                    "snapshot_time": str(row["snapshot_time"])
+                }
+                for row in rows
+            ]
+
+    def get_platform_stats(self, hours: int = 24) -> List[Dict[str, Any]]:
+        """获取各平台热搜数量统计"""
+        with self.get_connection() as conn:
+            if self.db_type == "sqlite":
+                cursor = self._execute(conn, """
+                    SELECT source, COUNT(DISTINCT item_id) as item_count,
+                           COUNT(DISTINCT snapshot_time) as snapshot_count
+                    FROM hot_item_snapshots
+                    WHERE snapshot_time > datetime('now', ?)
+                    GROUP BY source
+                    ORDER BY item_count DESC
+                """, (f"-{hours} hours",))
+            else:
+                cursor = self._execute(conn, """
+                    SELECT source, COUNT(DISTINCT item_id) as item_count,
+                           COUNT(DISTINCT snapshot_time) as snapshot_count
+                    FROM hot_item_snapshots
+                    WHERE snapshot_time > DATE_SUB(NOW(), INTERVAL %s HOUR)
+                    GROUP BY source
+                    ORDER BY item_count DESC
+                """, (hours,))
+            rows = cursor.fetchall()
+            return [
+                {
+                    "source": row["source"],
+                    "item_count": row["item_count"],
+                    "snapshot_count": row["snapshot_count"]
+                }
+                for row in rows
+            ]
+
+    def get_trending_items(self, hours: int = 24, limit: int = 20) -> List[Dict[str, Any]]:
+        """获取热度最高的条目（出现次数最多 + 排名最高）"""
+        with self.get_connection() as conn:
+            if self.db_type == "sqlite":
+                cursor = self._execute(conn, """
+                    SELECT item_id, title, source,
+                           COUNT(*) as appearances,
+                           MIN(rank) as best_rank,
+                           ROUND(AVG(rank), 1) as avg_rank,
+                           MAX(snapshot_time) as last_seen
+                    FROM hot_item_snapshots
+                    WHERE snapshot_time > datetime('now', ?)
+                    GROUP BY item_id
+                    ORDER BY appearances DESC, best_rank ASC
+                    LIMIT ?
+                """, (f"-{hours} hours", limit))
+            else:
+                cursor = self._execute(conn, """
+                    SELECT item_id, title, source,
+                           COUNT(*) as appearances,
+                           MIN(`rank`) as best_rank,
+                           ROUND(AVG(`rank`), 1) as avg_rank,
+                           MAX(snapshot_time) as last_seen
+                    FROM hot_item_snapshots
+                    WHERE snapshot_time > DATE_SUB(NOW(), INTERVAL %s HOUR)
+                    GROUP BY item_id
+                    ORDER BY appearances DESC, best_rank ASC
+                    LIMIT %s
+                """, (hours, limit))
+            rows = cursor.fetchall()
+            return [
+                {
+                    "item_id": row["item_id"],
+                    "title": row["title"],
+                    "source": row["source"],
+                    "appearances": row["appearances"],
+                    "best_rank": row["best_rank"],
+                    "avg_rank": float(row["avg_rank"]) if row["avg_rank"] else 0,
+                    "last_seen": str(row["last_seen"])
+                }
+                for row in rows
+            ]
+
+    def cleanup_old_snapshots(self, days: int = 7):
+        """清理旧的快照数据"""
+        with self.get_connection() as conn:
+            if self.db_type == "sqlite":
+                self._execute(conn, """
+                    DELETE FROM hot_item_snapshots WHERE snapshot_time < datetime('now', ?)
+                """, (f"-{days} days",))
+            else:
+                self._execute(conn, """
+                    DELETE FROM hot_item_snapshots WHERE snapshot_time < DATE_SUB(NOW(), INTERVAL %s DAY)
+                """, (days,))
 
 
 # 全局实例
