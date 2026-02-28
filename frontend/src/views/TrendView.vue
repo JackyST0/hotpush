@@ -323,6 +323,7 @@ const rankingChartData = computed(() => {
 const rankingChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: { padding: { top: 15 } },
     plugins: {
         legend: {
             position: 'bottom',
@@ -346,12 +347,12 @@ const rankingChartOptions = {
         },
         y: {
             reverse: true,
-            min: 0,
+            min: 1,
             ticks: {
                 color: '#9ca3af',
                 font: { size: 11 },
                 stepSize: 1,
-                callback: (val) => val >= 1 ? `#${val}` : ''
+                callback: (val) => `#${val}`
             },
             grid: { color: 'rgba(255,255,255,0.05)' },
             title: { display: true, text: '排名', color: '#6b7280', font: { size: 12 } }
@@ -377,6 +378,7 @@ const itemTrendChartData = computed(() => ({
 const itemTrendChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: { padding: { top: 15 } },
     plugins: {
         legend: { display: false },
         tooltip: {
@@ -393,11 +395,11 @@ const itemTrendChartOptions = {
         },
         y: {
             reverse: true,
-            min: 0,
+            min: 1,
             ticks: {
                 color: '#9ca3af',
                 stepSize: 1,
-                callback: (val) => val >= 1 ? `#${val}` : ''
+                callback: (val) => `#${val}`
             },
             grid: { color: 'rgba(255,255,255,0.05)' }
         }
